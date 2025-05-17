@@ -65,4 +65,4 @@
 
 ## 🙏 Special Thanks  
 
-Thanks to [Gartic-Developers](https://github.com/Gartic-Developers/Gartic-WordList) by [Qwyua](https://github.com/Qwyua) 💖
+Thanks to [Game Sketchers](https://github.com/GameSketchers/Gartic-WordList) by [Qwyua](https://github.com/Qwyua) 💖
