@@ -2,7 +2,7 @@
   <img src="./Assets/kawaii-banner-crop.png" alt="Kawaii Helper">
 </p>
 
-<h1 align="center">🌸 Kawaii Helper & Drawing Bot for Gartic.io 🎨✨</h1>
+<h1 align="center">🌸 Kawaii Helper & Drawing Bot 🎨✨</h1>
 
 <p align="center">
   <a href="#downloado">
