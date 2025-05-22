@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Kawaii Helper & Drawing Bot for Gartic.io
 // @name:tr      Gartic.io için Kawaii Yardımcı & Çizim Botu
-// @namespace    https://github.com/Gartic-Developers/Kawaii-Helper
-// @version      2025-04-19
+// @namespace    https://github.com/GameSketchers/Kawaii-Helper
+// @version      2025-05-22
 // @description  Helper for Gartic.io with auto-guess, drawing assistance, and drawing bot
 // @description:tr  Gartic.io için otomatik tahmin, çizim yardımı ve çizim botu ile yardımcı
 // @author       anonimbiri & Gartic-Developers
@@ -10,9 +10,9 @@
 // @match        *://*.gartic.io/*
 // @exclude      *://gartic.io/_next/*
 // @exclude      *://gartic.io/static/*
-// @icon         https://cdn.jsdelivr.net/gh/Gartic-Developers/Kawaii-Helper@refs/heads/main/Assets/kawaii-logo.png
-// @supportURL   https://github.com/Gartic-Developers/Kawaii-Helper/issues/new?labels=bug&type=bug&template=bug_report.md&title=Bug+Report
-// @homepage     https://github.com/Gartic-Developers/Kawaii-Helper
+// @icon         https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@refs/heads/main/Assets/kawaii-logo.png
+// @supportURL   https://github.com/GameSketchers/Kawaii-Helper/issues/new?labels=bug&type=bug&template=bug_report.md&title=Bug+Report
+// @homepage     https://github.com/GameSketchers/Kawaii-Helper
 // @run-at       document-start
 // @tag          games
 // @grant        none
@@ -45,7 +45,7 @@
                     "Color Tolerance": "Color Tolerance",
                     "Draw Now ✧": "Draw Now ✧",
                     "Stop Drawing ✧": "Stop Drawing ✧",
-                    "Made with ♥ by Anonimbiri & Gartic-Developers": "Made with ♥ by Anonimbiri & Gartic-Developers",
+                    "Made with ♥ by Anonimbiri & GameSketchers": "Made with ♥ by Anonimbiri & GameSketchers",
                     "Loaded ${wordList['Custom'].length} words from ${file.name}": "Loaded ${wordList['Custom'].length} words from ${file.name}",
                     "Not your turn or game not loaded! ✧": "Not your turn or game not loaded! ✧",
                     "Game not ready or not your turn! ✧": "Game not ready or not your turn! ✧",
@@ -82,7 +82,7 @@
                     "Color Tolerance": "Renk Toleransı",
                     "Draw Now ✧": "Şimdi Çiz ✧",
                     "Stop Drawing ✧": "Çizimi Durdur ✧",
-                    "Made with ♥ by Anonimbiri & Gartic-Developers": "Anonimbiri & Gartic-Developers tarafından ♥ ile yapıldı",
+                    "Made with ♥ by Anonimbiri & GameSketchers": "Anonimbiri & GameSketchers tarafından ♥ ile yapıldı",
                     "Loaded ${wordList['Custom'].length} words from ${file.name}": "${file.name} dosyasından ${wordList['Custom'].length} kelime yüklendi",
                     "Not your turn or game not loaded! ✧": "Sıra sende değil veya oyun yüklenmedi! ✧",
                     "Game not ready or not your turn! ✧": "Oyun hazır değil veya sıra sende değil! ✧",
@@ -104,9 +104,9 @@
             this.isDrawing = false;
             this.wordList = { "Custom": [] };
             this.wordListURLs = {
-                "General (en)": "https://cdn.jsdelivr.net/gh/Gartic-Developers/Gartic-WordList@master/languages/English/general.json",
-                "General (tr)": "https://cdn.jsdelivr.net/gh/Gartic-Developers/Gartic-WordList@master/languages/Turkish/general.json",
-                "General (ja)": "https://cdn.jsdelivr.net/gh/Gartic-Developers/Gartic-WordList@master/languages/Japanese/general.json"
+                "General (en)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/English/general.json",
+                "General (tr)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/Turkish/general.json",
+                "General (ja)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/Japanese/general.json"
             };
             this.elements = {};
             this.state = {
@@ -130,7 +130,7 @@
         }
 
         checkForUpdates() {
-            const url = 'https://api.github.com/repos/Gartic-Developers/Kawaii-Helper/releases/latest';
+            const url = 'https://api.github.com/repos/GameSketchers/Kawaii-Helper/releases/latest';
             const req = new XMLHttpRequest();
             req.open("GET", url, false);
             req.setRequestHeader('Accept', 'application/vnd.github.v3+json');
@@ -142,7 +142,7 @@
                         this.showNotification(
                             this.localize("New update available!"),
                             1e4,
-                            { text: 'Update', action: () => window.open('https://github.com/Gartic-Developers/Kawaii-Helper/releases/latest', '_blank') }
+                            { text: 'Update', action: () => window.open('https://github.com/GameSketchers/Kawaii-Helper/releases/latest', '_blank') }
                         );
                     }
                 }
@@ -250,8 +250,10 @@
         }
 
         interceptScripts() {
-            const roomScript = `https://cdn.jsdelivr.net/gh/Gartic-Developers/Kawaii-Helper@${GM_info.script.version}/GameSource/room.js`;
-            const createScript = `https://cdn.jsdelivr.net/gh/Gartic-Developers/Kawaii-Helper@${GM_info.script.version}/GameSource/create.js`;
+            const roomScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/room.js`;
+            const createScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/create.js`;
+            /*const roomScript = `https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@master/GameSource/room.js`;
+            const createScript = `https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@master/GameSource/create.js`;*/
 
             function downloadFileSync(url) {
                 const request = new XMLHttpRequest();
@@ -307,7 +309,7 @@
             const kawaiiHTML = `
         <div class="kawaii-cheat" id="kawaiiCheat">
             <div class="kawaii-header" id="kawaiiHeader">
-                <img src="https://cdn.jsdelivr.net/gh/Gartic-Developers/Kawaii-Helper@refs/heads/main/Assets/kawaii-logo.png" alt="Anime Girl" class="header-icon">
+                <img src="https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@refs/heads/main/Assets/kawaii-logo.png" alt="Anime Girl" class="header-icon">
                 <h2 data-translate="✧ Kawaii Helper ✧">✧ Kawaii Helper ✧</h2>
                 <button class="minimize-btn" id="minimizeBtn">▼</button>
             </div>
@@ -400,7 +402,7 @@
                     </div>
                 </div>
                 <div class="kawaii-footer">
-                    <span class="credit-text" data-translate="Made with ♥ by Anonimbiri & Gartic-Developers">Made with ♥ by Anonimbiri & Gartic-Developers</span>
+                    <span class="credit-text" data-translate="Made with ♥ by Anonimbiri & GameSketchers">Made with ♥ by Anonimbiri & GameSketchers</span>
                 </div>
             </div>
         </div>
