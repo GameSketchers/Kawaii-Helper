@@ -1,1931 +1,703 @@
 // ==UserScript==
-// @name         Kawaii Helper & Drawing Bot for Gartic.io
-// @name:tr      Gartic.io için Kawaii Yardımcı & Çizim Botu
-// @namespace    https://github.com/GameSketchers/Kawaii-Helper
-// @version      2025-05-22
-// @description  Helper for Gartic.io with auto-guess, drawing assistance, and drawing bot
-// @description:tr  Gartic.io için otomatik tahmin, çizim yardımı ve çizim botu ile yardımcı
-// @author       anonimbiri & Gartic-Developers
-// @license      MIT
-// @match        *://*.gartic.io/*
-// @exclude      *://gartic.io/_next/*
-// @exclude      *://gartic.io/static/*
-// @icon         https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@refs/heads/main/Assets/kawaii-logo.png
-// @supportURL   https://github.com/GameSketchers/Kawaii-Helper/issues/new?labels=bug&type=bug&template=bug_report.md&title=Bug+Report
-// @homepage     https://github.com/GameSketchers/Kawaii-Helper
+// @name         AimbaeShiro – Krunker.IO Cheat
+// @name:tr      AimbaeShiro – Krunker.IO Hilesi
+// @name:ja      AimbaeShiro – Krunker.IO チート
+// @name:az      AimbaeShiro – Krunker.IO Hilesi
+// @namespace    https://github.com/GameSketchers/AimbaeShiro
+// @version      1.1.6
+// @description  A powerful anime-themed cheat suite with Aimbot, Billboard & Distance-Scaled ESP, Team Checks, & Bhop. Now with updated settings logic and wallbang feature.
+// @description:tr  Aimbot, Billboard & Mesafeye Göre Ölçeklenen ESP, Takım Kontrolü ve Bhop içeren anime temalı güçlü bir hile aracı. Güncellenmiş ayar mantığı ve duvar arkası nişan alma özelliği ile.
+// @description:ja  エイムボット、ビルボード＆距離スケールESP、チームチェック、バニーホップを備えたアニメ風の高機能チートツール。更新された設定ロジックとウォールバン機能付き。
+// @description:az  Aimbot, Billboard & Məsafəyə Görə Miqyaslanan ESP, Komanda Yoxlaması və Bhop ilə anime tərzli güclü bir hile vasitəsidir. Yenilənmiş tənzimləmə məntiqi və divar arxası nişan alma xüsusiyyəti ilə.
+// @author       anonimbiri (Updated by request)
+// @match        *://krunker.io/*
+// @match        *://browserfps.com/*
+// @exclude      *://krunker.io/social*
+// @exclude      *://krunker.io/editor*
+// @icon         https://cdn.jsdelivr.net/gh/GameSketchers/AimbaeShiro@main/Assets/logo.png
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @supportURL   https://github.com/GameSketchers/AimbaeShiro/issues/new?labels=bug&type=bug&template=bug_report.md&title=Bug+Report
+// @homepage     https://github.com/GameSketchers/AimbaeShiro
 // @run-at       document-start
 // @tag          games
-// @grant        none
+// @license      MIT
 // @noframes
+// @require      https://unpkg.com/three@0.150.0/build/three.min.js
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    class KawaiiHelper {
+    class KrunkerCheats {
         constructor() {
-            this.translations = {
-                en: {
-                    "✧ Kawaii Helper ✧": "✧ Kawaii Helper ✧",
-                    "Guessing": "Guessing",
-                    "Drawing": "Drawing",
-                    "Auto Guess": "Auto Guess",
-                    "Speed": "Speed",
-                    "Custom Words": "Custom Words",
-                    "Drop word list here or click to upload": "Drop word list here or click to upload",
-                    "Enter pattern (e.g., ___e___)": "Enter pattern (e.g., ___e___)",
-                    "Type a pattern to see matches ✧": "Type a pattern to see matches ✧",
-                    "Upload a custom word list ✧": "Upload a custom word list ✧",
-                    "No words available ✧": "No words available ✧",
-                    "No matches found ✧": "No matches found ✧",
-                    "Tried Words": "Tried Words",
-                    "Drop image here or click to upload": "Drop image here or click to upload",
-                    "Search on Google Images 🡵": "Search on Google Images 🡵",
-                    "Draw Speed": "Draw Speed",
-                    "Color Tolerance": "Color Tolerance",
-                    "Draw Now ✧": "Draw Now ✧",
-                    "Stop Drawing ✧": "Stop Drawing ✧",
-                    "Made with ♥ by Anonimbiri & GameSketchers": "Made with ♥ by Anonimbiri & GameSketchers",
-                    "Loaded ${wordList['Custom'].length} words from ${file.name}": "Loaded ${wordList['Custom'].length} words from ${file.name}",
-                    "Not your turn or game not loaded! ✧": "Not your turn or game not loaded! ✧",
-                    "Game not ready or not your turn! ✧": "Game not ready or not your turn! ✧",
-                    "Canvas not accessible! ✧": "Canvas not accessible! ✧",
-                    "Canvas context not available! ✧": "Canvas context not available! ✧",
-                    "Temp canvas context failed! ✧": "Temp canvas context failed! ✧",
-                    "Image data error: ${e.message} ✧": "Image data error: ${e.message} ✧",
-                    "Drawing completed! ✧": "Drawing completed! ✧",
-                    "Failed to load image! ✧": "Failed to load image! ✧",
-                    "Drawing stopped! ✧": "Drawing stopped! ✧",
-                    "Settings": "Settings",
-                    "Auto Kick": "Auto Kick",
-                    "No Kick Cooldown": "No Kick Cooldown",
-                    "Chat Bypass Censorship": "Chat Bypass Censorship",
-                    "New update available!": "New update available!"
-                },
-                tr: {
-                    "✧ Kawaii Helper ✧": "✧ Kawaii Yardımcı ✧",
-                    "Guessing": "Tahmin",
-                    "Drawing": "Çizim",
-                    "Auto Guess": "Otomatik Tahmin",
-                    "Speed": "Hız",
-                    "Custom Words": "Özel Kelimeler",
-                    "Drop word list here or click to upload": "Kelime listesini buraya bırak veya yüklemek için tıkla",
-                    "Enter pattern (e.g., ___e___)": "Desen gir (ör., ___e___)",
-                    "Type a pattern to see matches ✧": "Eşleşmeleri görmek için bir desen yaz ✧",
-                    "Upload a custom word list ✧": "Özel bir kelime listesi yükle ✧",
-                    "No words available ✧": "Kelime yok ✧",
-                    "No matches found ✧": "Eşleşme bulunamadı ✧",
-                    "Tried Words": "Denenen Kelimeler",
-                    "Drop image here or click to upload": "Resmi buraya bırak veya yüklemek için tıkla",
-                    "Search on Google Images 🡵": "Google Görsellerde Ara 🡵",
-                    "Draw Speed": "Çizim Hızı",
-                    "Color Tolerance": "Renk Toleransı",
-                    "Draw Now ✧": "Şimdi Çiz ✧",
-                    "Stop Drawing ✧": "Çizimi Durdur ✧",
-                    "Made with ♥ by Anonimbiri & GameSketchers": "Anonimbiri & GameSketchers tarafından ♥ ile yapıldı",
-                    "Loaded ${wordList['Custom'].length} words from ${file.name}": "${file.name} dosyasından ${wordList['Custom'].length} kelime yüklendi",
-                    "Not your turn or game not loaded! ✧": "Sıra sende değil veya oyun yüklenmedi! ✧",
-                    "Game not ready or not your turn! ✧": "Oyun hazır değil veya sıra sende değil! ✧",
-                    "Canvas not accessible! ✧": "Tuval erişilemez! ✧",
-                    "Canvas context not available! ✧": "Tuval bağlamı kullanılamıyor! ✧",
-                    "Temp canvas context failed! ✧": "Geçici tuval bağlamı başarısız! ✧",
-                    "Image data error: ${e.message} ✧": "Görüntü verisi hatası: ${e.message} ✧",
-                    "Drawing completed! ✧": "Çizim tamamlandı! ✧",
-                    "Failed to load image! ✧": "Görüntü yüklenemedi! ✧",
-                    "Drawing stopped! ✧": "Çizim durduruldu! ✧",
-                    "Settings": "Ayarlar",
-                    "Auto Kick": "Otomatik Atma",
-                    "No Kick Cooldown": "Atma Bekleme Süresi Yok",
-                    "Chat Bypass Censorship": "Sohbet Sansürünü Atlat",
-                    "New update available!": "Yeni güncelleme var!"
-                }
-            };
-            this.currentLang = navigator.language.split('-')[0] in this.translations ? navigator.language.split('-')[0] : 'en';
-            this.isDrawing = false;
-            this.wordList = { "Custom": [] };
-            this.wordListURLs = {
-                "General (en)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/English/general.json",
-                "General (tr)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/Turkish/general.json",
-                "General (ja)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/Japanese/general.json"
-            };
-            this.elements = {};
-            this.state = {
-                isDragging: false,
-                initialX: 0,
-                initialY: 0,
-                xOffset: 0,
-                yOffset: 0,
-                rafId: null,
-                autoGuessInterval: null,
-                triedLabelAdded: false
-            };
-            this.lastTheme = "Custom";
-            this.settings = this.loadSettings();
+            this.THREE = window.THREE;
+            if (!this.THREE) {
+                console.error("🌸 AimbaeShiro: THREE.js not loaded! Waiting...");
+                setTimeout(() => this.initializeCheats(), 1000);
+                return;
+            }
+            this.initializeCheats();
         }
 
-        static init() {
-            const helper = new KawaiiHelper();
-            helper.setup();
-            return helper;
+        initializeCheats() {
+            this.THREE = window.THREE;
+            if (!this.THREE) {
+                console.error("🌸 AimbaeShiro: THREE.js failed to load after retry.");
+                return;
+            }
+            console.log("🌸 AimbaeShiro: Initializing with THREE.js v" + this.THREE.REVISION);
+
+            this.originalDefineProperty = Object.defineProperty;
+            Object.defineProperty = this.proxiedDefineProperty.bind(this);
+
+            this.defaultSettings = {
+                aimbotEnabled: true,
+                aimbotOnRightMouse: false,
+                aimbotWallCheck: true, // This acts as the "wallbang" toggle. When false, it aims through walls.
+                aimbotTeamCheck: true,
+                autoFireEnabled: false,
+                espLines: true,
+                espSkeleton: true,
+                espSquare: true,
+                espNameTags: true,
+                espWeaponIcons: true,
+                espTeamCheck: true,
+                wireframeEnabled: false,
+                bhopEnabled: false,
+                menuVisible: true,
+                espColor: "#ff0080",
+                skeletonColor: "#ff0080",
+                boxColor: "#ff0080",
+                menuTopPx: null,
+                menuLeftPx: null,
+            };
+            this.defaultHotkeys = {
+                toggleMenu: 'F2',
+                aimbotEnabled: 'F3',
+                espLines: 'F4',
+                espSkeleton: 'F5',
+                espSquare: 'F6',
+                wireframeEnabled: 'F7',
+                bhopEnabled: 'F8',
+                autoFireEnabled: 'F9',
+                aimbotWallCheck: 'F10', // Hotkey for toggling wallbangs
+                aimbotTeamCheck: 'F11',
+                espTeamCheck: 'F12',
+                espNameTags: 'Numpad1',
+                espWeaponIcons: 'Numpad2',
+            };
+            this.settings = this.loadSettings('anonimbiri_settings', this.defaultSettings);
+            this.hotkeys = this.loadSettings('anonimbiri_hotkeys', this.defaultHotkeys);
+
+            this.scene = null;
+            this.camera = null;
+            this.myPlayer = null;
+            this.players = [];
+            this.myTeamId = null;
+            this.rightMouseDown = false;
+            this.spacebarDown = false;
+            this.isBindingHotkey = false;
+            this.currentBindingSetting = null;
+            this.injectTimer = null;
+            this.originalArrayPush = Array.prototype.push;
+            this.tempVector = new this.THREE.Vector3();
+            this.tempObject = new this.THREE.Object3D();
+            this.tempObject.rotation.order = 'YXZ';
+            this.cameraPos = new this.THREE.Vector3();
+            this.managedESP = new Map();
+            this.raycaster = new this.THREE.Raycaster();
+            this.bhopLoopTimeout = null;
+            this.bhopIsCrouching = false;
+            this.autoFireTimer = null;
+
+            this.createGeometries();
+            this.createMaterials();
+            this.createGUI();
+            this.addEventListeners();
+            this.animate();
         }
 
-        checkForUpdates() {
-            const url = 'https://api.github.com/repos/GameSketchers/Kawaii-Helper/releases/latest';
-            const req = new XMLHttpRequest();
-            req.open("GET", url, false);
-            req.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+        proxiedDefineProperty(obj, prop, descriptor) {
+            if (obj && obj.isPlayer && obj.id !== -1) {
+                setInterval(() => {
+                    try {
+                        const player = obj.objInstances;
+                        if (obj.isYou) {
+                            this.myTeamId = obj._team;
+                            obj.resetAmmo(); // It is currently working, but may be fixed in the future.
+                        }
+                        if (this.myTeamId !== null) {
+                            player.isTeam = (obj._team === this.myTeamId);
+                        }
+
+                        player.playerName = obj.name;
+                        if (obj.weapon && obj.weapon.icon) {
+                            player.weaponIcon = `https://assets.krunker.io/textures/weapons/${obj.weapon.icon}.png`;
+                        } else {
+                            player.weaponIcon = null;
+                        }
+                    } catch (e) {}
+                }, 100);
+            }
+            return this.originalDefineProperty.apply(this, arguments);
+        }
+
+        loadSettings(key, defaults) {
+            let loaded = GM_getValue(key, null);
+            if (loaded) {
+                try {
+                    // UPDATED: Using Object.assign as requested.
+                    return Object.assign({}, defaults, JSON.parse(loaded));
+                } catch (e) { console.error("🌸 AimbaeShiro: Error parsing settings:", e); }
+            }
+            return defaults;
+        }
+
+        saveSettings(key, value) { GM_setValue(key, JSON.stringify(value)); }
+
+        attemptInjection() {
+            if (this.scene) return;
+            const loadingBg = document.getElementById('loadingBg');
+            if (loadingBg && loadingBg.style.display === 'none' && !this.injectTimer) {
+                this.injectTimer = setTimeout(() => { Array.prototype.push = this.proxiedArrayPush.bind(this); }, 2000);
+            }
+            requestAnimationFrame(() => this.attemptInjection());
+        }
+
+        proxiedArrayPush(object) {
             try {
-                req.send();
-                if (req.status === 200) {
-                    const latest = JSON.parse(req.responseText).tag_name.replace(/^v/, '');
-                    if (latest > GM_info.script.version) {
-                        this.showNotification(
-                            this.localize("New update available!"),
-                            1e4,
-                            { text: 'Update', action: () => window.open('https://github.com/GameSketchers/Kawaii-Helper/releases/latest', '_blank') }
-                        );
-                    }
+                if (object?.parent?.type === 'Scene' && object.parent.name === 'Main') {
+                    console.log('🌸 AimbaeShiro: Main Scene found!');
+                    this.scene = object.parent;
+                    Array.prototype.push = this.originalArrayPush;
+                    clearTimeout(this.injectTimer); this.injectTimer = null;
                 }
-            } catch (e) {}
+            } catch (error) {}
+            return this.originalArrayPush.apply(this, arguments);
         }
 
-        loadSettings() {
-            const savedSettings = localStorage.getItem('kawaiiSettings');
-            return savedSettings ? JSON.parse(savedSettings) : {
-                autoGuess: false,
-                guessSpeed: 1000,
-                customWords: false,
-                autoKick: false,
-                noKickCooldown: false,
-                chatBypassCensorship: false,
-                drawSpeed: 200,
-                colorTolerance: 20,
-                position: null
-            };
+        simulateKey(keyCode, eventType = 'keypress') {
+            const oEvent = document.createEvent('KeyboardEvent');
+            Object.defineProperty(oEvent, 'keyCode', { get: function() { return this.keyCodeVal; } });
+            Object.defineProperty(oEvent, 'which', { get: function() { return this.keyCodeVal; } });
+            if (oEvent.initKeyboardEvent) oEvent.initKeyboardEvent(eventType, true, true, document.defaultView, false, false, false, false, keyCode, 0);
+            else oEvent.initKeyEvent(eventType, true, true, document.defaultView, false, false, false, false, keyCode, 0);
+            oEvent.keyCodeVal = keyCode;
+            document.dispatchEvent(oEvent);
         }
 
-        saveSettings() {
-            const settings = {
-                autoGuess: this.elements.autoGuessCheckbox.checked,
-                guessSpeed: parseInt(this.elements.guessSpeed.value),
-                customWords: this.elements.customWordsCheckbox.checked,
-                autoKick: this.elements.autoKickCheckbox.checked,
-                noKickCooldown: this.elements.noKickCooldownCheckbox.checked,
-                chatBypassCensorship: this.elements.chatBypassCensorship.checked,
-                drawSpeed: parseInt(this.elements.drawSpeed.value),
-                colorTolerance: parseInt(this.elements.colorTolerance.value),
-                position: {
-                    x: this.state.xOffset,
-                    y: this.state.yOffset
-                }
-            };
-            localStorage.setItem('kawaiiSettings', JSON.stringify(settings));
+        simulateMouse(eventType, button) {
+            const oEvent = document.createEvent('MouseEvent');
+            oEvent.initMouseEvent(eventType, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, button, null);
+            document.dispatchEvent(oEvent);
         }
 
-        localize(key, params = {}) {
-            let text = this.translations[this.currentLang][key] || key;
-            for (const [param, value] of Object.entries(params)) {
-                text = text.replace(`\${${param}}`, value);
-            }
-            return text;
+        createGeometries() {
+            const squareVertices = [-2.5, -5.5, 0, 2.5, -5.5, 0, 2.5, 5.5, 0, -2.5, 5.5, 0];
+            this.squareGeometry = new this.THREE.BufferGeometry();
+            this.squareGeometry.setAttribute('position', new this.THREE.Float32BufferAttribute(squareVertices, 3));
+            this.espLineGeometry = new this.THREE.BufferGeometry();
+            this.espLinePositionsAttribute = new this.THREE.Float32BufferAttribute(new Float32Array(100 * 6), 3);
+            this.espLineGeometry.setAttribute('position', this.espLinePositionsAttribute);
         }
 
-        showNotification(message, duration = 3000, button = null) {
-            const notification = document.createElement('div');
-            notification.className = 'kawaii-notification';
-
-            let notificationHTML = `
-            <span class="kawaii-notification-icon">✧</span>
-            <span class="kawaii-notification-text">${message}</span>
-            <button class="kawaii-notification-close">✕</button>
-            `;
-
-            if (button) {
-                notificationHTML = `
-                <span class="kawaii-notification-icon">✧</span>
-                <span class="kawaii-notification-text">${message}</span>
-                <button class="kawaii-notification-button">${button.text}</button>
-                <button class="kawaii-notification-close">✕</button>
-                `;
-            }
-
-            notification.innerHTML = notificationHTML;
-            this.elements.notifications.appendChild(notification);
-            setTimeout(() => notification.classList.add('show'), 10);
-
-            const timeout = setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, duration);
-
-            notification.querySelector('.kawaii-notification-close').addEventListener('click', () => {
-                clearTimeout(timeout);
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            });
-
-            if (button) {
-                notification.querySelector('.kawaii-notification-button').addEventListener('click', () => {
-                    button.action();
-                    clearTimeout(timeout);
-                    notification.classList.remove('show');
-                    setTimeout(() => notification.remove(), 300);
-                });
-            }
-        }
-
-        setup() {
-            this.interceptScripts();
-            this.injectFonts();
-            this.waitForBody(() => {
-                this.injectHTML();
-                this.cacheElements();
-                this.setInitialPosition();
-                this.applySavedSettings();
-                this.checkForUpdates();
-                this.addStyles();
-                this.bindEvents();
-                this.initializeGameCheck();
+        createShaderMaterial(color) {
+            return new this.THREE.ShaderMaterial({
+                uniforms: { u_color: { value: new this.THREE.Color(color) }, u_time: { value: 0.0 } },
+                vertexShader: `uniform float u_time; void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position.z = 0.999; }`,
+                fragmentShader: `uniform vec3 u_color; uniform float u_time; void main() { float pulse = 0.8 + 0.2 * sin(u_time * 5.0); gl_FragColor = vec4(u_color * pulse, 1.0); }`,
+                depthTest: false, depthWrite: false, transparent: true, blending: this.THREE.AdditiveBlending
             });
         }
 
-        interceptScripts() {
-            const roomScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/room.js`;
-            const createScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/create.js`;
-            /*const roomScript = `https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@master/GameSource/room.js`;
-            const createScript = `https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@master/GameSource/create.js`;*/
-
-            function downloadFileSync(url) {
-                const request = new XMLHttpRequest();
-                request.open("GET", url, false);
-                request.send();
-                return request.status === 200 ? request.response : null;
-            }
-
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.addedNodes) {
-                        Array.from(mutation.addedNodes).forEach((node) => {
-                            if (node.nodeName.toLowerCase() === 'script' && node.src && node.src.includes('room') && !node.src.includes('rooms')) {
-                                node.remove();
-                                node.src = '';
-                                node.textContent = '';
-                                const newScript = downloadFileSync(roomScript);
-                                window.kawaiiHelper = this;
-                                Function(newScript)();
-                            } else if (node.nodeName.toLowerCase() === 'script' && node.src && node.src.includes('create')) {
-                                node.remove();
-                                node.src = '';
-                                node.textContent = '';
-                                const newScript = downloadFileSync(createScript);
-                                window.kawaiiHelper = this;
-                                Function(newScript)();
-                            }
-                        });
-                    }
-                });
-            });
-
-            observer.observe(document, { childList: true, subtree: true });
+        createMaterials() {
+            this.lineMaterial = this.createShaderMaterial(this.settings.espColor);
+            this.skeletonMaterial = this.createShaderMaterial(this.settings.skeletonColor);
+            this.squareMaterial = this.createShaderMaterial(this.settings.boxColor);
+            this.materials = [this.lineMaterial, this.skeletonMaterial, this.squareMaterial];
         }
 
-        injectFonts() {
+        createGUI() {
+            // This huge function is kept as is.
             const fontLink = document.createElement('link');
+            fontLink.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap';
             fontLink.rel = 'stylesheet';
-            fontLink.href = 'https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap';
             document.head.appendChild(fontLink);
-        }
-
-        waitForBody(callback) {
-            const interval = setInterval(() => {
-                if (document.body) {
-                    clearInterval(interval);
-                    callback();
-                }
-            }, 100);
-        }
-
-        injectHTML() {
-            const kawaiiHTML = `
-        <div class="kawaii-cheat" id="kawaiiCheat">
-            <div class="kawaii-header" id="kawaiiHeader">
-                <img src="https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@refs/heads/main/Assets/kawaii-logo.png" alt="Anime Girl" class="header-icon">
-                <h2 data-translate="✧ Kawaii Helper ✧">✧ Kawaii Helper ✧</h2>
-                <button class="minimize-btn" id="minimizeBtn">▼</button>
-            </div>
-            <div class="kawaii-body" id="kawaiiBody">
-                <div class="kawaii-tabs">
-                    <button class="kawaii-tab active" data-tab="guessing" data-translate="Guessing">Guessing</button>
-                    <button class="kawaii-tab" data-tab="drawing" data-translate="Drawing">Drawing</button>
-                    <button class="kawaii-tab" data-tab="settings" data-translate="Settings">Settings</button>
-                </div>
-                <div class="kawaii-content" id="guessing-tab">
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="autoGuess">
-                        <label for="autoGuess" data-translate="Auto Guess">Auto Guess</label>
-                    </div>
-                    <div class="slider-container" id="speedContainer" style="display: none;">
-                        <div class="slider-label" data-translate="Speed">Speed</div>
-                        <div class="custom-slider">
-                            <input type="range" id="guessSpeed" min="100" max="5000" value="1000" step="100">
-                            <div class="slider-track"></div>
-                            <span id="speedValue">1s</span>
-                        </div>
-                    </div>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="customWords">
-                        <label for="customWords" data-translate="Custom Words">Custom Words</label>
-                    </div>
-                    <div class="dropzone-container" id="wordListContainer" style="display: none;">
-                        <div class="dropzone" id="wordListDropzone">
-                            <input type="file" id="wordList" accept=".txt">
-                            <div class="dropzone-content">
-                                <div class="dropzone-icon">❀</div>
-                                <p data-translate="Drop word list here or click to upload">Drop word list here or click to upload</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-container">
-                        <input type="text" id="guessPattern" data-translate-placeholder="Enter pattern (e.g., ___e___)" placeholder="Enter pattern (e.g., ___e___)">
-                    </div>
-                    <div class="hit-list" id="hitList">
-                        <div class="message" data-translate="Type a pattern to see matches ✧">Type a pattern to see matches ✧</div>
-                    </div>
-                </div>
-                <div class="kawaii-content" id="drawing-tab" style="display: none;">
-                    <div class="dropzone-container">
-                        <div class="dropzone" id="imageDropzone">
-                            <input type="file" id="imageUpload" accept="image/*">
-                            <div class="dropzone-content">
-                                <div class="dropzone-icon">✎</div>
-                                <p data-translate="Drop image here or click to upload">Drop image here or click to upload</p>
-                            </div>
-                        </div>
-                        <div class="image-preview" id="imagePreview" style="display: none;">
-                            <img id="previewImg">
-                            <div class="preview-controls">
-                                <button class="cancel-btn" id="cancelImage">✕</button>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="google-search-btn" id="googleSearchBtn" data-translate="Search on Google Images 🡵">Search on Google Images 🡵</button>
-                    <div class="slider-container">
-                        <div class="slider-label" data-translate="Draw Speed">Draw Speed</div>
-                        <div class="custom-slider">
-                            <input type="range" id="drawSpeed" min="20" max="5000" value="200" step="100">
-                            <div class="slider-track"></div>
-                            <span id="drawSpeedValue">200ms</span>
-                        </div>
-                    </div>
-                    <div class="slider-container">
-                         <div class="slider-label" data-translate="Color Tolerance">Color Tolerance</div>
-                         <div class="custom-slider">
-                             <input type="range" id="colorTolerance" min="5" max="100" value="20" step="1">
-                             <div class="slider-track"></div>
-                             <span id="colorToleranceValue">20</span>
-                         </div>
-                    </div>
-                    <button class="draw-btn" id="sendDraw" disabled data-translate="Draw Now ✧">Draw Now ✧</button>
-                </div>
-                <div class="kawaii-content" id="settings-tab" style="display: none;">
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="autoKick">
-                        <label for="autoKick" data-translate="Auto Kick">Auto Kick</label>
-                    </div>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="noKickCooldown">
-                        <label for="noKickCooldown" data-translate="No Kick Cooldown">No Kick Cooldown</label>
-                    </div>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="chatBypassCensorship">
-                        <label for="chatBypassCensorship" data-translate="Chat Bypass Censorship">Chat Bypass Censorship</label>
-                    </div>
-                </div>
-                <div class="kawaii-footer">
-                    <span class="credit-text" data-translate="Made with ♥ by Anonimbiri & GameSketchers">Made with ♥ by Anonimbiri & GameSketchers</span>
-                </div>
-            </div>
-        </div>
-        <div class="kawaii-notifications" id="kawaiiNotifications"></div>
-    `;
-            document.body.insertAdjacentHTML('beforeend', kawaiiHTML);
-        }
-
-        cacheElements() {
-            this.elements = {
-                kawaiiCheat: document.getElementById('kawaiiCheat'),
-                kawaiiHeader: document.getElementById('kawaiiHeader'),
-                minimizeBtn: document.getElementById('minimizeBtn'),
-                tabButtons: document.querySelectorAll('.kawaii-tab'),
-                tabContents: document.querySelectorAll('.kawaii-content'),
-                autoGuessCheckbox: document.getElementById('autoGuess'),
-                speedContainer: document.getElementById('speedContainer'),
-                guessSpeed: document.getElementById('guessSpeed'),
-                speedValue: document.getElementById('speedValue'),
-                customWordsCheckbox: document.getElementById('customWords'),
-                wordListContainer: document.getElementById('wordListContainer'),
-                wordListDropzone: document.getElementById('wordListDropzone'),
-                wordListInput: document.getElementById('wordList'),
-                guessPattern: document.getElementById('guessPattern'),
-                hitList: document.getElementById('hitList'),
-                imageDropzone: document.getElementById('imageDropzone'),
-                imageUpload: document.getElementById('imageUpload'),
-                imagePreview: document.getElementById('imagePreview'),
-                previewImg: document.getElementById('previewImg'),
-                cancelImage: document.getElementById('cancelImage'),
-                googleSearchBtn: document.getElementById('googleSearchBtn'),
-                drawSpeed: document.getElementById('drawSpeed'),
-                drawSpeedValue: document.getElementById('drawSpeedValue'),
-                colorTolerance: document.getElementById('colorTolerance'),
-                colorToleranceValue: document.getElementById('colorToleranceValue'),
-                sendDraw: document.getElementById('sendDraw'),
-                autoKickCheckbox: document.getElementById('autoKick'),
-                noKickCooldownCheckbox: document.getElementById('noKickCooldown'),
-                chatBypassCensorship: document.getElementById('chatBypassCensorship'),
-                notifications: document.getElementById('kawaiiNotifications')
-            };
-        }
-
-        setInitialPosition() {
-            const waitForRender = () => {
-                if (this.elements.kawaiiCheat.offsetWidth > 0 && this.elements.kawaiiCheat.offsetHeight > 0) {
-                    const savedPosition = this.settings.position;
-                    let initialX, initialY;
-
-                    if (savedPosition && savedPosition.x !== null && savedPosition.y !== null) {
-                        initialX = savedPosition.x;
-                        initialY = savedPosition.y;
-                    } else {
-                        const windowWidth = window.innerWidth;
-                        const windowHeight = window.innerHeight;
-                        const cheatWidth = this.elements.kawaiiCheat.offsetWidth;
-                        const cheatHeight = this.elements.kawaiiCheat.offsetHeight;
-                        initialX = (windowWidth - cheatWidth) / 2;
-                        initialY = (windowHeight - cheatHeight) / 2;
-                    }
-
-                    this.elements.kawaiiCheat.style.left = `${initialX}px`;
-                    this.elements.kawaiiCheat.style.top = `${initialY}px`;
-                    this.state.xOffset = initialX;
-                    this.state.yOffset = initialY;
-                    this.elements.kawaiiCheat.classList.add('twirl-minimize');
-                    this.saveSettings();
-                } else {
-                    requestAnimationFrame(waitForRender);
-                }
-            };
-            requestAnimationFrame(waitForRender);
-        }
-
-        applySavedSettings() {
-            this.elements.autoGuessCheckbox.checked = this.settings.autoGuess;
-            this.elements.guessSpeed.value = this.settings.guessSpeed;
-            this.elements.customWordsCheckbox.checked = this.settings.customWords;
-            this.elements.autoKickCheckbox.checked = this.settings.autoKick;
-            this.elements.noKickCooldownCheckbox.checked = this.settings.noKickCooldown;
-            this.elements.chatBypassCensorship.checked = this.settings.chatBypassCensorship;
-            this.elements.drawSpeed.value = this.settings.drawSpeed;
-            this.elements.colorTolerance.value = this.settings.colorTolerance;
-
-            this.elements.speedContainer.style.display = this.settings.autoGuess ? 'flex' : 'none';
-            this.elements.wordListContainer.style.display = this.settings.customWords ? 'block' : 'none';
-            this.updateGuessSpeed({ target: this.elements.guessSpeed });
-            this.updateDrawSpeed({ target: this.elements.drawSpeed });
-            this.updateColorTolerance({ target: this.elements.colorTolerance });
-        }
-
-        addStyles() {
+            const menuCSS = `.anonimbiri-menu-container{font-family:'Orbitron',monospace;position:fixed;width:90vw;max-width:500px;background:rgba(10,10,10,.95);border:2px solid #ff0080;border-radius:15px;box-shadow:0 0 30px rgba(255,0,128,.5),inset 0 0 20px rgba(255,0,128,.1);backdrop-filter:blur(10px);animation:anonimbiri-menuGlow 2s ease-in-out infinite alternate,anonimbiri-slideIn .5s ease-out;user-select:none;z-index:1000;display:none;opacity:0;transition:opacity .3s ease-out,transform .3s ease-out}.anonimbiri-menu-container.visible{display:block;opacity:1}@keyframes anonimbiri-menuGlow{from{box-shadow:0 0 30px rgba(255,0,128,.3),inset 0 0 20px rgba(255,0,128,.1)}to{box-shadow:0 0 50px rgba(255,0,128,.6),inset 0 0 30px rgba(255,0,128,.2)}}@keyframes anonimbiri-slideIn{from{opacity:0;transform:translateY(-20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}.anonimbiri-menu-header{height:250px;background:linear-gradient(45deg,#ff0080,#ff4da6);border-radius:13px 13px 0 0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:grab}.anonimbiri-menu-header:active{cursor:grabbing}.anonimbiri-menu-header::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background-image:url(https://cdn.jsdelivr.net/gh/GameSketchers/AimbaeShiro@main/Assets/banner.jpeg);background-size:cover;background-position:center;opacity:.8;z-index:1;animation:anonimbiri-bannerShift 10s ease-in-out infinite}@keyframes anonimbiri-bannerShift{0%,100%{transform:scale(1.05) rotate(-1deg)}50%{transform:scale(1.1) rotate(1deg)}}.anonimbiri-menu-header::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(45deg,rgba(255,0,128,.3),rgba(255,77,166,.3));z-index:2}.anonimbiri-tab-container{display:flex;background:rgba(20,20,20,.9);border-bottom:1px solid #ff0080}.anonimbiri-tab{flex:1;padding:12px;background:rgba(30,30,30,.8);color:#ff0080;text-align:center;cursor:pointer;transition:all .3s ease;font-weight:700;font-size:12px;letter-spacing:1px;border-right:1px solid rgba(255,0,128,.3);position:relative;overflow:hidden}.anonimbiri-tab::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transition:left .5s ease}.anonimbiri-tab:hover::before{left:100%}.anonimbiri-tab:last-child{border-right:none}.anonimbiri-tab:hover{background:rgba(255,0,128,.2);color:#fff;transform:translateY(-2px)}.anonimbiri-tab.active{background:linear-gradient(45deg,#ff0080,#ff4da6);color:#fff;box-shadow:0 2px 10px rgba(255,0,128,.5)}.anonimbiri-tab-content{padding:15px;max-height:calc(100vh - 350px);min-height:150px;overflow-y:auto}.anonimbiri-tab-pane{display:none}.anonimbiri-tab-pane.active{display:block;animation:anonimbiri-fadeIn .3s ease}@keyframes anonimbiri-fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.anonimbiri-menu-item{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;margin:8px 0;background:rgba(30,30,30,.8);border:1px solid rgba(255,0,128,.3);border-radius:8px;transition:all .3s ease;cursor:pointer;position:relative;overflow:hidden}.anonimbiri-menu-item::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,0,128,.1),transparent);transition:left .5s ease}.anonimbiri-menu-item:hover::before{left:100%}.anonimbiri-menu-item:hover{background:rgba(255,0,128,.1);border-color:#ff0080;transform:translateX(5px) scale(1.02);box-shadow:0 5px 15px rgba(255,0,128,.3)}.anonimbiri-menu-item.active{background:rgba(255,0,128,.2);border-color:#ff0080}.anonimbiri-menu-item-content{display:flex;align-items:center;gap:12px}.anonimbiri-menu-item-icon{width:20px;height:20px;fill:#ff4da6;transition:all .3s ease}.anonimbiri-menu-item:hover .anonimbiri-menu-item-icon{fill:#ff0080;transform:scale(1.1)}.anonimbiri-menu-item label{color:#ff4da6;font-weight:700;font-size:14px;letter-spacing:1px;cursor:pointer;transition:color .3s ease}.anonimbiri-menu-item:hover label{color:#ff0080}.anonimbiri-controls{display:flex;align-items:center;gap:10px}.anonimbiri-toggle-switch{position:relative;width:50px;height:24px;background:rgba(40,40,40,.8);border-radius:12px;pointer-events:none;transition:all .3s ease;border:1px solid rgba(255,0,128,.3)}.anonimbiri-toggle-switch::before{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#666;border-radius:50%;transition:all .3s cubic-bezier(.68,-.55,.265,1.55);box-shadow:0 2px 5px rgba(0,0,0,.3)}.anonimbiri-toggle-switch.active{background:linear-gradient(45deg,#ff0080,#ff4da6);box-shadow:0 0 15px rgba(255,0,128,.5)}.anonimbiri-toggle-switch.active::before{left:28px;background:#fff}.anonimbiri-color-container{position:relative}.anonimbiri-color-picker-input{opacity:0;position:absolute;width:40px;height:24px;cursor:pointer}.anonimbiri-color-preview{width:40px;height:24px;border:1px solid #ff0080;border-radius:4px;pointer-events:none;transition:all .3s ease}.anonimbiri-menu-item:hover .anonimbiri-color-preview{transform:scale(1.1);box-shadow:0 0 10px rgba(255,0,128,.7)}.anonimbiri-hotkey{background:rgba(255,0,128,.2);color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;border:1px solid #ff0080;pointer-events:none;min-width:40px;text-align:center}.anonimbiri-menu-item:hover .anonimbiri-hotkey{background:#ff0080;transform:scale(1.05)}.anonimbiri-tab-content::-webkit-scrollbar{width:8px}.anonimbiri-tab-content::-webkit-scrollbar-track{background:rgba(20,20,20,.5);border-radius:4px}.anonimbiri-tab-content::-webkit-scrollbar-thumb{background:#ff0080;border-radius:4px}.anonimbiri-tab-content::-webkit-scrollbar-thumb:hover{background:#ff4da6}.anonimbiri-close-btn{position:absolute;top:10px;right:15px;color:#fff;font-size:20px;cursor:pointer;z-index:4;width:25px;height:25px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);border-radius:50%;transition:all .3s ease}.anonimbiri-close-btn svg{width:16px;height:16px;fill:#fff}.anonimbiri-close-btn:hover{background:#ff0080;transform:rotate(90deg) scale(1.1)}.anonimbiri-hotkey-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:2000;animation:anonimbiri-fadeIn .3s ease}.anonimbiri-hotkey-modal.active{display:flex}.anonimbiri-hotkey-content{background:linear-gradient(135deg,#1a1a1a,#2a1a2a);padding:40px;border-radius:15px;border:2px solid #ff0080;box-shadow:0 0 50px rgba(255,0,128,.7);text-align:center;animation:anonimbiri-modalPulse .5s ease-out}@keyframes anonimbiri-modalPulse{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}.anonimbiri-hotkey-content h2{color:#ff0080;font-size:24px;margin-bottom:20px;letter-spacing:2px}.anonimbiri-hotkey-content p{color:#fff;font-size:16px;margin-bottom:30px}.anonimbiri-hotkey-content p span{color:#ff4da6;font-weight:700}`;
             const style = document.createElement('style');
-            style.textContent = `
-        :root {
-            --primary-color: #FF69B4;
-            --primary-dark: #FF1493;
-            --primary-light: #FFC0CB;
-            --bg-color: #FFB6C1;
-            --text-color: #5d004f;
-            --panel-bg: rgba(255, 182, 193, 0.95);
-            --panel-border: #FF69B4;
-            --element-bg: rgba(255, 240, 245, 0.7);
-            --element-hover: rgba(255, 240, 245, 0.9);
-            --element-active: #FF69B4;
-            --element-active-text: #FFF0F5;
-        }
-
-        .kawaii-cheat {
-            position: fixed;
-            width: 280px;
-            background: var(--panel-bg);
-            border-radius: 15px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            color: var(--text-color);
-            user-select: none;
-            z-index: 1000;
-            font-family: 'M PLUS Rounded 1c', sans-serif;
-            border: 2px solid var(--panel-border);
-            transition: height 0.4s ease-in-out, opacity 0.4s ease-in-out;
-            max-height: calc(100vh - 40px);
-            overflow: hidden;
-            opacity: 0;
-        }
-
-        .kawaii-cheat.comet-enter {
-            animation: cometEnter 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-
-        @keyframes cometEnter {
-            0% { opacity: 0; transform: translateY(-80px) translateX(50px) scale(0.6); filter: brightness(1.5); }
-            50% { opacity: 0.8; transform: translateY(15px) translateX(-10px) scale(1.08); filter: brightness(1.2); }
-            75% { transform: translateY(-8px) translateX(5px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) translateX(0) scale(1); filter: brightness(1); }
-        }
-
-        .kawaii-cheat.minimized {
-            height: 50px;
-            opacity: 0.85;
-            overflow: hidden;
-            animation: cometMinimize 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-
-        @keyframes cometMinimize {
-            0% { transform: scale(1); }
-            30% { transform: scale(0.92); }
-            60% { transform: scale(0.88) translateY(5px); }
-            100% { transform: scale(0.85) translateY(10px); }
-        }
-
-        .kawaii-cheat:not(.minimized) {
-            opacity: 1;
-            animation: cometMaximize 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-
-        @keyframes cometMaximize {
-            0% { transform: scale(0.85) translateY(10px); }
-            60% { transform: scale(1.05) translateY(-5px); }
-            80% { transform: scale(0.98) translateY(2px); }
-            100% { transform: scale(1) translateY(0); }
-        }
-
-        .kawaii-cheat.minimized .kawaii-body {
-            opacity: 0;
-            max-height: 0;
-            overflow: hidden;
-            transition: opacity 0.2s ease-in-out, max-height 0.4s ease-in-out;
-        }
-
-        .kawaii-cheat:not(.minimized) .kawaii-body {
-            opacity: 1;
-            max-height: 500px;
-            transition: opacity 0.2s ease-in-out 0.2s, max-height 0.4s ease-in-out;
-        }
-
-        .kawaii-cheat.dragging {
-            opacity: 0.8;
-            transition: none;
-        }
-
-        .kawaii-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 10px;
-            cursor: move;
-            background: var(--element-bg);
-            border-radius: 10px;
-            border: 2px solid var(--primary-color);
-        }
-
-        .header-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-            object-position: top;
-            border: 1px dashed var(--primary-color);
-        }
-
-        .kawaii-header h2 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--primary-dark);
-            text-shadow: 1px 1px 2px var(--primary-light);
-        }
-
-        .minimize-btn {
-            background: transparent;
-            border: 1px dashed var(--primary-dark);
-            border-radius: 6px;
-            width: 24px;
-            height: 24px;
-            color: var(--primary-dark);
-            font-size: 16px;
-            line-height: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .minimize-btn:hover {
-            background: var(--primary-color);
-            color: var(--element-active-text);
-            border-color: var(--primary-color);
-            transform: rotate(180deg);
-        }
-
-        .kawaii-tabs {
-            display: flex;
-            gap: 8px;
-            padding: 5px 0;
-        }
-
-        .kawaii-tab {
-            flex: 1;
-            background: var(--element-bg);
-            border: 1px dashed var(--primary-color);
-            padding: 6px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-color);
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.3s ease;
-            text-align: center;
-        }
-
-        .kawaii-tab.active {
-            background: var(--primary-color);
-            color: var(--element-active-text);
-            border-color: var(--primary-dark);
-        }
-
-        .kawaii-tab:hover:not(.active) {
-            background: var(--element-hover);
-            transform: scale(1.05);
-        }
-
-        .kawaii-content {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 0;
-            flex-grow: 1;
-            overflow: hidden;
-            padding: 5px;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--element-bg);
-            padding: 8px;
-            border-radius: 10px;
-            border: 1px dashed var(--primary-color);
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .checkbox-container:hover {
-            background: var(--element-hover);
-        }
-
-        .checkbox-container input[type="checkbox"] {
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            background: var(--element-active-text);
-            border: 1px dashed var(--primary-color);
-            border-radius: 50%;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .checkbox-container input[type="checkbox"]:checked {
-            background: var(--primary-color);
-            border-color: var(--primary-dark);
-        }
-
-        .checkbox-container input[type="checkbox"]:checked::after {
-            content: "♥";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--element-active-text);
-            font-size: 12px;
-        }
-
-        .checkbox-container label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-color);
-            cursor: pointer;
-        }
-
-        .input-container {
-            background: var(--element-bg);
-            padding: 8px;
-            border-radius: 10px;
-            border: 1px dashed var(--primary-color);
-        }
-
-        .input-container input[type="text"] {
-            width: 100%;
-            background: var(--element-active-text);
-            border: 1px dashed var(--primary-light);
-            border-radius: 8px;
-            padding: 6px 10px;
-            color: var(--text-color);
-            font-size: 12px;
-            font-weight: 500;
-            box-sizing: border-box;
-            transition: border-color 0.3s ease;
-            outline: none;
-        }
-
-        .input-container input[type="text"]:focus {
-            border-color: var(--primary-dark);
-        }
-
-        .dropzone-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .dropzone {
-            position: relative;
-            background: var(--element-bg);
-            border: 1px dashed var(--primary-color);
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.3s ease, border-color 0.3s ease;
-            min-height: 80px;
-        }
-
-        .dropzone:hover, .dropzone.drag-over {
-            background: var(--element-hover);
-            border-color: var(--primary-dark);
-        }
-
-        .dropzone input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .dropzone-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            text-align: center;
-            pointer-events: none;
-        }
-
-        .dropzone-icon {
-            font-size: 24px;
-            color: var(--primary-color);
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .dropzone-content p {
-            margin: 0;
-            color: var(--text-color);
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .slider-container {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            background: var(--element-bg);
-            padding: 8px;
-            border-radius: 10px;
-            border: 1px dashed var(--primary-color);
-        }
-
-        .slider-label {
-            font-size: 12px;
-            color: var(--text-color);
-            font-weight: 700;
-            text-align: center;
-        }
-
-        .custom-slider {
-            position: relative;
-            height: 25px;
-            padding: 0 8px;
-        }
-
-        .custom-slider input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            background: transparent;
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            z-index: 2;
-        }
-
-        .custom-slider .slider-track {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 6px;
-            background: linear-gradient(to right, var(--primary-dark) 0%, var(--primary-dark) var(--slider-progress), var(--primary-light) var(--slider-progress), var(--primary-light) 100%);
-            border-radius: 3px;
-            transform: translateY(-50%);
-            z-index: 1;
-        }
-
-        .custom-slider input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            border: 1px dashed var(--element-active-text);
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .custom-slider input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-
-        .custom-slider span {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            color: var(--text-color);
-            background: var(--element-active-text);
-            padding: 2px 6px;
-            border-radius: 8px;
-            border: 1px dashed var(--primary-color);
-            white-space: nowrap;
-        }
-
-        .hit-list {
-            max-height: 180px;
-            min-height: 40px;
-            overflow-y: auto;
-            background: var(--element-bg);
-            border: 1px dashed var(--primary-color);
-            border-radius: 10px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary-color) var(--element-bg);
-            box-sizing: border-box;
-        }
-
-        .hit-list:empty {
-            min-height: 40px;
-            overflow-y: hidden;
-        }
-
-        .hit-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .hit-list::-webkit-scrollbar-thumb {
-            background-color: var(--primary-color);
-            border-radius: 10px;
-        }
-
-        .hit-list::-webkit-scrollbar-track {
-            background: var(--element-bg);
-        }
-
-        .hit-list button {
-            background: rgba(255, 240, 245, 0.8);
-            border: 1px dashed var(--primary-color);
-            padding: 8px 10px;
-            border-radius: 8px;
-            color: var(--text-color);
-            font-size: 12px;
-            font-weight: 700;
-            line-height: 1.5;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-align: left;
-            box-sizing: border-box;
-            min-height: 32px;
-        }
-
-        .hit-list button:before {
-            content: '';
-            position: absolute;
-            left: -100%;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
-            transition: all 0.5s ease;
-            z-index: 0;
-        }
-
-        .hit-list button:hover:not(.tried):before {
-            left: 100%;
-        }
-
-        .hit-list button:hover:not(.tried) {
-            background: var(--primary-dark);
-            color: var(--element-active-text);
-            box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
-        }
-
-        .hit-list button span {
-            position: relative;
-            z-index: 1;
-        }
-
-        .hit-list button.tried {
-            background: rgba(255, 182, 193, 0.6);
-            border-color: var(--primary-light);
-            color: var(--primary-dark);
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .hit-list .tried-label {
-            font-size: 10px;
-            color: var(--primary-dark);
-            text-align: center;
-            padding: 4px;
-            background: var(--element-active-text);
-            border-radius: 8px;
-            border: 1px dashed var(--primary-color);
-        }
-
-        .hit-list .message {
-            font-size: 12px;
-            color: var(--text-color);
-            text-align: center;
-            padding: 8px;
-        }
-
-        .image-preview {
-            position: relative;
-            margin-top: 10px;
-            background: var(--element-bg);
-            padding: 8px;
-            border-radius: 10px;
-            border: 1px dashed var(--primary-color);
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            max-height: 120px;
-            border-radius: 8px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .preview-controls {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            display: flex;
-            gap: 6px;
-        }
-
-        .cancel-btn {
-            background: transparent;
-            border: 1px dashed var(--primary-dark);
-            border-radius: 6px;
-            width: 24px;
-            height: 24px;
-            color: var(--primary-dark);
-            font-size: 16px;
-            line-height: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .cancel-btn:hover {
-            background: var(--primary-dark);
-            color: var(--element-active-text);
-            transform: scale(1.1);
-        }
-
-        .draw-btn {
-            background: var(--primary-color);
-            border: 1px dashed var(--primary-dark);
-            padding: 8px;
-            border-radius: 10px;
-            color: var(--element-active-text);
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .draw-btn:before {
-            content: '';
-            position: absolute;
-            left: -100%;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
-            transition: all 0.5s ease;
-        }
-
-        .draw-btn:hover:not(:disabled):before {
-            left: 100%;
-        }
-
-        .draw-btn:hover:not(:disabled) {
-            background: var(--primary-dark);
-            box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
-        }
-
-        .draw-btn:disabled {
-            background: rgba(255, 105, 180, 0.5);
-            cursor: not-allowed;
-        }
-
-        .kawaii-footer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 10px;
-            padding: 6px;
-            background: var(--element-bg);
-            border-radius: 10px;
-            border: 2px solid var(--primary-color);
-        }
-
-        .credit-text {
-            font-size: 10px;
-            color: var(--text-color);
-            font-weight: 700;
-        }
-
-        .kawaii-notifications {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 2000;
-            pointer-events: none;
-        }
-
-        .kawaii-notification {
-            background: var(--panel-bg);
-            border: 2px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 12px 18px;
-            color: var(--text-color);
-            font-family: 'M PLUS Rounded 1c', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 300px;
-            opacity: 0;
-            transform: translateX(100%);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            pointer-events: auto;
-            gap: 8px;
-            padding: 12px 12px;
-        }
-
-        .kawaii-notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .kawaii-notification-icon {
-            font-size: 20px;
-            color: var(--primary-dark);
-            animation: bounce 1s infinite ease-in-out;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .kawaii-notification-button {
-            background: var(--primary-color);
-            border: 1px dashed var(--primary-dark);
-            border-radius: 6px;
-            padding: 4px 8px;
-            color: var(--element-active-text);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .kawaii-notification-button:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
-        }
-
-        .kawaii-notification-close {
-            background: transparent;
-            border: 1px dashed var(--primary-dark);
-            border-radius: 6px;
-            width: 20px;
-            height: 20px;
-            color: var(--primary-dark);
-            font-size: 12px;
-            line-height: 18px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: auto;
-        }
-
-        .kawaii-notification-close:hover {
-            background: var(--primary-dark);
-            color: var(--element-active-text);
-            transform: scale(1.1);
-        }
-
-        .google-search-btn {
-            background: var(--primary-color);
-            border: 1px dashed var(--primary-dark);
-            border-radius: 8px;
-            padding: 6px 10px;
-            color: var(--element-active-text);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            width: 100%;
-            box-sizing: border-box;
-            height: 30px;
-            text-align: center;
-        }
-
-        .google-search-btn:before {
-            content: '';
-            position: absolute;
-            left: -100%;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
-            transition: all 0.5s ease;
-        }
-
-        .google-search-btn:hover:not(:disabled):before {
-            left: 100%;
-        }
-
-        .google-search-btn:hover:not(:disabled) {
-            background: var(--primary-dark);
-            box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
-        }
-
-        .google-search-btn:disabled {
-            background: rgba(255, 105, 180, 0.5);
-            cursor: not-allowed;
-        }
-    `;
+            style.textContent = menuCSS;
             document.head.appendChild(style);
-            this.updateLanguage();
-            [this.elements.guessSpeed, this.elements.drawSpeed, this.elements.colorTolerance].forEach(this.updateSliderTrack.bind(this));
+            const menuHTML = `<div class="anonimbiri-menu-container" id="anonimbiri-cheatMenu"><div class="anonimbiri-menu-header" id="anonimbiri-menuHeader"><div class="anonimbiri-close-btn" id="anonimbiri-closeBtn"><svg viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg></div></div><div class="anonimbiri-tab-container"><div class="anonimbiri-tab active" data-tab="aimbot">AIMBOT</div><div class="anonimbiri-tab" data-tab="esp">ESP</div><div class="anonimbiri-tab" data-tab="misc">MISC</div><div class="anonimbiri-tab" data-tab="hotkeys">HOTKEYS</div></div><div class="anonimbiri-tab-content"><div class="anonimbiri-tab-pane active" id="anonimbiri-tab-aimbot">${this.createMenuItemHTML('toggle','aimbotEnabled','Aimbot Enabled','<path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z"/>')}${this.createMenuItemHTML('toggle','aimbotOnRightMouse','Right Mouse Trigger','<path d="M11,1.07C7.05,1.56 4,4.92 4,9H7L12,4L17,9H20C20,4.92 16.95,1.56 13,1.07V1A1,1 0 0,0 11,1V1.07M18,10H6A2,2 0 0,0 4,12V22A2,2 0 0,0 6,24H18A2,2 0 0,0 20,22V12A2,2 0 0,0 18,10M16,12V14H8V12H16Z"/>')}${this.createMenuItemHTML('toggle','aimbotWallCheck','Wall Check (Wallbang)','<path d="M2,2V22H4V20H20V22H22V2H20V4H4V2H2M6,6H18V18H6V6M8,8V16H16V8H8M10,10H14V14H10V10Z"/>')}${this.createMenuItemHTML('toggle','aimbotTeamCheck','Team Check','<path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M17,11.5C17,14.08 15.03,16.44 12.44,17.06C12.3,17.03 11.7,17 11,17C9.33,17 7.79,16.5 6.67,15.67C6.15,15.25 5.75,14.77 5.5,14.25C5.5,14.25 5,11.5 5,11.5C5,11.5 8,13 11,13C12,13 14,12.5 14,12.5C14,12.5 14,11.25 14,11C14,10.29 12.5,9.5 12.5,9.5L13.5,8.5C13.5,8.5 17,10 17,11.5Z"/>')}${this.createMenuItemHTML('toggle','autoFireEnabled','Auto Fire','<path d="M21.71,5.29L18.71,2.29A1,1 0 0,0 17.29,2.29L16,3.59L11.71,7.88C11.69,7.88 11.68,7.89 11.66,7.89L8.34,11.21C8.32,11.23 8.31,11.24 8.29,11.26L2.29,17.26A1,1 0 0,0 2.29,18.68L5.29,21.68A1,1 0 0,0 6.71,21.68L12.71,15.68C12.73,15.66 12.74,15.65 12.76,15.63L16.08,12.31C16.1,12.29 16.11,12.28 16.13,12.26L20.42,8L21.71,6.71A1,1 0 0,0 21.71,5.29M6,20.27L3.73,18L8.66,13.07L10.93,15.34L6,20.27M12.34,14.93L9.07,11.66L11.66,9.07L14.93,12.34L12.34,14.93M16.34,11.93L12.07,7.66L17.29,2.44L21.56,6.71L16.34,11.93Z"/>')}</div><div class="anonimbiri-tab-pane" id="anonimbiri-tab-esp">${this.createMenuItemHTML('toggle','espTeamCheck','Team Check','<path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M17,11.5C17,14.08 15.03,16.44 12.44,17.06C12.3,17.03 11.7,17 11,17C9.33,17 7.79,16.5 6.67,15.67C6.15,15.25 5.75,14.77 5.5,14.25C5.5,14.25 5,11.5 5,11.5C5,11.5 8,13 11,13C12,13 14,12.5 14,12.5C14,12.5 14,11.25 14,11C14,10.29 12.5,9.5 12.5,9.5L13.5,8.5C13.5,8.5 17,10 17,11.5Z"/>')}${this.createMenuItemHTML('toggle','espLines','ESP Lines','<path d="M15,3V7.59L7.59,15H3V21H9V16.42L16.42,9H21V3M17,5H19V7H17M5,17H7V19H5"/>')}${this.createMenuItemHTML('toggle','espSkeleton','ESP Skeleton','<path d="M12,2A3,3 0 0,1 15,5A3,3 0 0,1 12,8A3,3 0 0,1 9,5A3,3 0 0,1 12,2M21,9V7H15L13.5,7.5C13.1,7.4 12.6,7.5 12.1,7.8L10.5,9L12,10.5L13.5,9H15V15L13.5,17H10.5L9,15V9L7.5,7.5C7.1,7.4 6.6,7.5 6.1,7.8L4.5,9L6,10.5L7.5,9H9V15L10.5,17H13.5L15,15V9H21M12,17.5C11.2,17.5 10.5,18.2 10.5,19S11.2,20.5 12,20.5 13.5,19.8 13.5,19 12.8,17.5 12,17.5Z"/>')}${this.createMenuItemHTML('toggle','espSquare','Box ESP','<path d="M3,3V21H21V3H3M5,5H19V19H5V5Z"/>')}${this.createMenuItemHTML('toggle','espNameTags','Name Tags','<path d="M20,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M12,6A2,2 0 0,1 14,8A2,2 0 0,1 12,10A2,2 0 0,1 10,8A2,2 0 0,1 12,6M18,18H6V17C6,15.67 10,14.5 12,14.5C14,14.5 18,15.67 18,17V18Z"/>')}${this.createMenuItemHTML('toggle','espWeaponIcons','Weapon Icons','<path d="M16,13V21H12V13H16M17.8,7.4L16.4,6L15,7.4L13.6,6L12.2,7.4L10.8,6L9.4,7.4L8,6L6.6,7.4L5.2,6L3.8,7.4L2.4,6L1,7.4V21H11V12H7V10H11V2H23V7.4H17.8Z"/>')}${this.createMenuItemHTML('color','espColor','Lines Color','<path d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A8.5,8.5 0 0,0 20.5,12.5A8.5,8.5 0 0,0 12,3Z"/>')}${this.createMenuItemHTML('color','skeletonColor','Skeleton Color','<path d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A8.5,8.5 0 0,0 20.5,12.5A8.5,8.5 0 0,0 12,3Z"/>')}${this.createMenuItemHTML('color','boxColor','Box Color','<path d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A8.5,8.5 0 0,0 20.5,12.5A8.5,8.5 0 0,0 12,3Z"/>')}</div><div class="anonimbiri-tab-pane" id="anonimbiri-tab-misc">${this.createMenuItemHTML('toggle','wireframeEnabled','Wireframe','<path d="M12,2L2,7L12,12L22,7L12,2M2,17L12,22L22,17L12,12L2,17Z"/>')}${this.createMenuItemHTML('toggle','bhopEnabled','Bunny Hop','<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M7,9L12,14L17,9H7Z"/>')}</div><div class="anonimbiri-tab-pane" id="anonimbiri-tab-hotkeys">${this.createMenuItemHTML('hotkey','toggleMenu','Toggle Menu','<path d="M6,2A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6M6,4H13V9H18V20H6V4Z"/>')}${this.createMenuItemHTML('hotkey','aimbotEnabled','Toggle Aimbot','<path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z"/>')}${this.createMenuItemHTML('hotkey','aimbotWallCheck','Toggle Wall Check','<path d="M2,2V22H4V20H20V22H22V2H20V4H4V2H2M6,6H18V18H6V6M8,8V16H16V8H8M10,10H14V14H10V10Z"/>')}${this.createMenuItemHTML('hotkey','aimbotTeamCheck','Toggle Aimbot Team','<path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M17,11.5C17,14.08 15.03,16.44 12.44,17.06C12.3,17.03 11.7,17 11,17C9.33,17 7.79,16.5 6.67,15.67C6.15,15.25 5.75,14.77 5.5,14.25C5.5,14.25 5,11.5 5,11.5C5,11.5 8,13 11,13C12,13 14,12.5 14,12.5C14,12.5 14,11.25 14,11C14,10.29 12.5,9.5 12.5,9.5L13.5,8.5C13.5,8.5 17,10 17,11.5Z"/>')}${this.createMenuItemHTML('hotkey','espTeamCheck','Toggle ESP Team','<path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M17,11.5C17,14.08 15.03,16.44 12.44,17.06C12.3,17.03 11.7,17 11,17C9.33,17 7.79,16.5 6.67,15.67C6.15,15.25 5.75,14.77 5.5,14.25C5.5,14.25 5,11.5 5,11.5C5,11.5 8,13 11,13C12,13 14,12.5 14,12.5C14,12.5 14,11.25 14,11C14,10.29 12.5,9.5 12.5,9.5L13.5,8.5C13.5,8.5 17,10 17,11.5Z"/>')}${this.createMenuItemHTML('hotkey','espNameTags','Toggle Name Tags','<path d="M20,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M12,6A2,2 0 0,1 14,8A2,2 0 0,1 12,10A2,2 0 0,1 10,8A2,2 0 0,1 12,6M18,18H6V17C6,15.67 10,14.5 12,14.5C14,14.5 18,15.67 18,17V18Z"/>')}${this.createMenuItemHTML('hotkey','espWeaponIcons','Toggle Weapon Icons','<path d="M16,13V21H12V13H16M17.8,7.4L16.4,6L15,7.4L13.6,6L12.2,7.4L10.8,6L9.4,7.4L8,6L6.6,7.4L5.2,6L3.8,7.4L2.4,6L1,7.4V21H11V12H7V10H11V2H23V7.4H17.8Z"/>')}${this.createMenuItemHTML('hotkey','autoFireEnabled','Toggle Auto Fire','<path d="M21.71,5.29L18.71,2.29A1,1 0 0,0 17.29,2.29L16,3.59L11.71,7.88C11.69,7.88 11.68,7.89 11.66,7.89L8.34,11.21C8.32,11.23 8.31,11.24 8.29,11.26L2.29,17.26A1,1 0 0,0 2.29,18.68L5.29,21.68A1,1 0 0,0 6.71,21.68L12.71,15.68C12.73,15.66 12.74,15.65 12.76,15.63L16.08,12.31C16.1,12.29 16.11,12.28 16.13,12.26L20.42,8L21.71,6.71A1,1 0 0,0 21.71,5.29M6,20.27L3.73,18L8.66,13.07L10.93,15.34L6,20.27M12.34,14.93L9.07,11.66L11.66,9.07L14.93,12.34L12.34,14.93M16.34,11.93L12.07,7.66L17.29,2.44L21.56,6.71L16.34,11.93Z"/>')}${this.createMenuItemHTML('hotkey','espLines','Toggle ESP Lines','<path d="M15,3V7.59L7.59,15H3V21H9V16.42L16.42,9H21V3M17,5H19V7H17M5,17H7V19H5"/>')}${this.createMenuItemHTML('hotkey','espSkeleton','Toggle ESP Skeleton','<path d="M12,2A3,3 0 0,1 15,5A3,3 0 0,1 12,8A3,3 0 0,1 9,5A3,3 0 0,1 12,2M21,9V7H15L13.5,7.5C13.1,7.4 12.6,7.5 12.1,7.8L10.5,9L12,10.5L13.5,9H15V15L13.5,17H10.5L9,15V9L7.5,7.5C7.1,7.4 6.6,7.5 6.1,7.8L4.5,9L6,10.5L7.5,9H9V15L10.5,17H13.5L15,15V9H21M12,17.5C11.2,17.5 10.5,18.2 10.5,19S11.2,20.5 12,20.5 13.5,19.8 13.5,19 12.8,17.5 12,17.5Z"/>')}${this.createMenuItemHTML('hotkey','espSquare','Toggle Box ESP','<path d="M3,3V21H21V3H3M5,5H19V19H5V5Z"/>')}${this.createMenuItemHTML('hotkey','wireframeEnabled','Toggle Wireframe','<path d="M12,2L2,7L12,12L22,7L12,2M2,17L12,22L22,17L12,12L2,17Z"/>')}${this.createMenuItemHTML('hotkey','bhopEnabled','Toggle Bunny Hop','<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M7,9L12,14L17,9H7Z"/>')}</div></div></div><div class="anonimbiri-hotkey-modal" id="anonimbiri-hotkeyModal"><div class="anonimbiri-hotkey-content"><h2>SET HOTKEY</h2><p>Press any key for <span id="anonimbiri-hotkeyFeatureName"></span></p><p style="font-size:12px;opacity:.7">(Press Escape to cancel)</p></div></div>`;
+            const container = document.createElement('div');
+            container.innerHTML = menuHTML; document.body.appendChild(container); this.gui = document.getElementById('anonimbiri-cheatMenu'); this.hotkeyModal = document.getElementById('anonimbiri-hotkeyModal');
+            if (this.settings.menuLeftPx !== null && this.settings.menuTopPx !== null) {
+                this.gui.style.left = `${this.settings.menuLeftPx}px`; this.gui.style.top = `${this.settings.menuTopPx}px`;
+            } else {
+                setTimeout(() => {
+                    const rect = this.gui.getBoundingClientRect(); this.gui.style.left = `calc(50% - ${rect.width / 2}px)`; this.gui.style.top = `calc(50% - ${rect.height / 2}px)`; const newRect = this.gui.getBoundingClientRect(); this.settings.menuLeftPx = newRect.left; this.settings.menuTopPx = newRect.top; this.saveSettings('anonimbiri_settings', this.settings);
+                }, 100);
+            }
+            if (this.settings.menuVisible) this.gui.classList.add('visible');
+            this.updateAllGUIElements(); this.makeMenuDraggable();
         }
 
-        updateLanguage() {
-            document.querySelectorAll('[data-translate]').forEach(element => {
-                element.textContent = this.localize(element.getAttribute('data-translate'));
+        createMenuItemHTML(type, setting, label, iconPath) {
+            let controlHTML = '';
+            switch (type) {
+                case 'toggle': controlHTML = `<div class="anonimbiri-toggle-switch"></div>`; break;
+                case 'color': controlHTML = `<div class="anonimbiri-color-container"><input type="color" class="anonimbiri-color-picker-input" data-setting="${setting}"><div class="anonimbiri-color-preview" data-setting="${setting}"></div></div>`; break;
+                case 'hotkey': controlHTML = `<div class="anonimbiri-hotkey" data-hotkey="${setting}"></div>`; break;
+            }
+            return `<div class="anonimbiri-menu-item" data-setting="${setting}"><div class="anonimbiri-menu-item-content"><svg class="anonimbiri-menu-item-icon" viewBox="0 0 24 24">${iconPath}</svg><label>${label}</label></div><div class="anonimbiri-controls">${controlHTML}</div></div>`;
+        }
+
+        addEventListeners() {
+            window.addEventListener('pointerdown', (e) => { if (e.button === 2) this.rightMouseDown = true; });
+            window.addEventListener('pointerup', (e) => { if (e.button === 2) this.rightMouseDown = false; });
+            window.addEventListener('keydown', (e) => {
+                if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
+                if (this.isBindingHotkey) {
+                    e.preventDefault(); e.stopPropagation(); if (e.code === 'Escape') { this.hideHotkeyModal(); return; }
+                    if (Object.values(this.hotkeys).includes(e.code)) { console.warn("🌸 AimbaeShiro: Key already assigned!"); return; }
+                    this.hotkeys[this.currentBindingSetting] = e.code; this.saveSettings('anonimbiri_hotkeys', this.hotkeys); this.updateHotkeyButton(this.currentBindingSetting); this.hideHotkeyModal(); return;
+                }
+                if (e.code === 'Space' && this.settings.bhopEnabled) {
+                    e.preventDefault(); e.stopPropagation(); if (!this.spacebarDown) { this.spacebarDown = true; this.bhopSequence(); }
+                }
+                if (Object.values(this.hotkeys).includes(e.code)) { e.preventDefault(); e.stopPropagation(); }
+                const action = Object.keys(this.hotkeys).find(key => this.hotkeys[key] === e.code);
+                if (action) {
+                    if (action === 'toggleMenu') { this.toggleMenuVisibility(); }
+                    else if (this.settings.hasOwnProperty(action)) { this.settings[action] = !this.settings[action]; this.saveSettings('anonimbiri_settings', this.settings); this.updateGUIToggle(action); }
+                }
+            }, { capture: true });
+            window.addEventListener('keyup', (e) => {
+                if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
+                if (e.code === 'Space' && this.settings.bhopEnabled) {
+                    e.preventDefault(); e.stopPropagation(); this.spacebarDown = false; clearTimeout(this.bhopLoopTimeout); this.bhopIsCrouching = false; this.simulateKey(32, 'keyup');
+                }
+                if (Object.values(this.hotkeys).includes(e.code)) { e.preventDefault(); e.stopPropagation(); }
+            }, { capture: true });
+            document.getElementById('anonimbiri-closeBtn').addEventListener('click', () => this.toggleMenuVisibility());
+            this.gui.querySelector('.anonimbiri-tab-container').addEventListener('click', (e) => {
+                if (e.target.classList.contains('anonimbiri-tab')) {
+                    if(window.SOUND) window.SOUND.play('select_0', 0.1);
+                    const tabName = e.target.dataset.tab;
+                    this.gui.querySelectorAll('.anonimbiri-tab').forEach(t => t.classList.remove('active'));
+                    this.gui.querySelectorAll('.anonimbiri-tab-pane').forEach(p => p.classList.remove('active'));
+                    e.target.classList.add('active'); document.getElementById(`anonimbiri-tab-${tabName}`).classList.add('active');
+                }
             });
-            document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-                element.setAttribute('placeholder', this.localize(element.getAttribute('data-translate-placeholder')));
+            this.gui.addEventListener('click', (e) => {
+                const menuItem = e.target.closest('.anonimbiri-menu-item');
+                if (!menuItem) return;
+                if(window.SOUND) window.SOUND.play('select_0', 0.1);
+                const setting = menuItem.dataset.setting;
+                if (!setting) return;
+                if (menuItem.querySelector('.anonimbiri-toggle-switch')) { this.settings[setting] = !this.settings[setting]; this.saveSettings('anonimbiri_settings', this.settings); this.updateGUIToggle(setting); }
+                else if (menuItem.querySelector('.anonimbiri-color-picker-input')) { menuItem.querySelector('.anonimbiri-color-picker-input').click(); }
+                else if (menuItem.querySelector('.anonimbiri-hotkey')) { this.showHotkeyModal(setting); }
             });
+            this.gui.querySelectorAll('.anonimbiri-menu-item, .anonimbiri-tab, .anonimbiri-close-btn').forEach(el => { el.addEventListener('mouseenter', () => { if (window.SOUND) window.SOUND.play('hover_0', 0.1); }); });
+            this.gui.querySelectorAll('.anonimbiri-color-picker-input').forEach(cp => cp.addEventListener('input', (e) => { this.settings[e.target.dataset.setting] = e.target.value; this.saveSettings('anonimbiri_settings', this.settings); this.updateGUIPicker(e.target.dataset.setting); }));
         }
 
-        updateSliderTrack(slider) {
-            const min = parseInt(slider.min);
-            const max = parseInt(slider.max);
-            const value = parseInt(slider.value);
-            const progress = ((value - min) / (max - min)) * 100;
-            slider.parentElement.querySelector('.slider-track').style.setProperty('--slider-progress', `${progress}%`);
+        updateAllGUIElements() {
+            Object.keys(this.settings).forEach(s => {
+                if (s.toLowerCase().includes('color')) this.updateGUIPicker(s);
+                else if (typeof this.settings[s] === 'boolean') this.updateGUIToggle(s);
+            });
+            Object.keys(this.hotkeys).forEach(h => this.updateHotkeyButton(h));
         }
 
-        preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
+        updateGUIToggle(settingName) {
+            const item = this.gui.querySelector(`.anonimbiri-menu-item[data-setting="${settingName}"]`); if (!item) return;
+            const toggle = item.querySelector('.anonimbiri-toggle-switch'); const isActive = this.settings[settingName];
+            item.classList.toggle('active', isActive); if (toggle) toggle.classList.toggle('active', isActive);
         }
 
-        bindEvents() {
-            this.elements.kawaiiHeader.addEventListener('mousedown', this.startDragging.bind(this));
-            document.addEventListener('mousemove', this.drag.bind(this));
-            document.addEventListener('mouseup', this.stopDragging.bind(this));
-            this.elements.minimizeBtn.addEventListener('click', this.toggleMinimize.bind(this));
-            this.elements.tabButtons.forEach(btn => btn.addEventListener('click', this.switchTab.bind(this, btn)));
+        updateGUIPicker(settingName) {
+            if (!settingName.toLowerCase().includes('color')) return;
+            const picker = this.gui.querySelector(`input[type="color"][data-setting="${settingName}"]`);
+            const preview = this.gui.querySelector(`.anonimbiri-color-preview[data-setting="${settingName}"]`);
+            if (picker) picker.value = this.settings[settingName]; if (preview) preview.style.backgroundColor = this.settings[settingName];
+            const material = { espColor: this.lineMaterial, skeletonColor: this.skeletonMaterial, boxColor: this.squareMaterial }[settingName];
+            if (material) material.uniforms.u_color.value.set(this.settings[settingName]);
+        }
 
-            document.querySelectorAll('.checkbox-container').forEach(container => {
-                const checkbox = container.querySelector('input[type="checkbox"]');
-                const label = container.querySelector('label');
-                container.addEventListener('click', e => {
-                    if (e.target !== checkbox && e.target !== label) {
-                        checkbox.checked = !checkbox.checked;
-                        checkbox.dispatchEvent(new Event('change'));
+        updateHotkeyButton(settingName) {
+            const b = this.gui.querySelector(`.anonimbiri-hotkey[data-hotkey="${settingName}"]`);
+            if (b) b.textContent = this.hotkeys[settingName]?.replace('Key', '').replace('Digit', '') || 'N/A';
+        }
+
+        toggleMenuVisibility() {
+            this.settings.menuVisible = !this.settings.menuVisible;
+            this.gui.classList.toggle('visible', this.settings.menuVisible);
+            this.saveSettings('anonimbiri_settings', this.settings);
+            if (this.settings.menuVisible) {
+                if (window.SOUND) window.SOUND.play('tick_0', 0.1);
+                let lock = document.pointerLockElement || document.mozPointerLockElement; if (lock) document.exitPointerLock();
+            }
+        }
+
+        showHotkeyModal(settingName) {
+            this.isBindingHotkey = true; this.currentBindingSetting = settingName;
+            const labelEl = this.gui.querySelector(`.anonimbiri-menu-item[data-setting="${settingName}"] label`);
+            document.getElementById('anonimbiri-hotkeyFeatureName').textContent = labelEl ? labelEl.textContent : settingName;
+            this.hotkeyModal.classList.add('active');
+        }
+
+        hideHotkeyModal() {
+            this.isBindingHotkey = false; this.currentBindingSetting = null; this.hotkeyModal.classList.remove('active');
+        }
+
+        makeMenuDraggable() {
+            // This function is kept as is.
+            const header=document.getElementById("anonimbiri-menuHeader");let isDragging=!1,offsetX,offsetY;const startDragging=e=>{isDragging=!0;const t=this.gui.getBoundingClientRect(),o=e.type.startsWith("touch")?e.touches[0].clientX:e.clientX,i=e.type.startsWith("touch")?e.touches[0].clientY:e.clientY;offsetX=o-t.left,offsetY=i-t.top,document.addEventListener("mousemove",updatePosition),document.addEventListener("mouseup",stopDragging),document.addEventListener("touchmove",updatePosition,{passive:!1}),document.addEventListener("touchend",stopDragging)},updatePosition=e=>{if(!isDragging)return;const t=e.type.startsWith("touch")?e.touches[0].clientX:e.clientX,o=e.type.startsWith("touch")?e.touches[0].clientY:e.clientY;let i=t-offsetX,n=o-offsetY;const s=5,a=this.gui.offsetWidth,r=this.gui.offsetHeight;i=Math.max(s,Math.min(i,window.innerWidth-a-s)),n=Math.max(s,Math.min(n,window.innerHeight-r-s)),this.gui.style.left=`${i}px`,this.gui.style.top=`${n}px`},stopDragging=()=>{isDragging=!1,document.removeEventListener("mousemove",updatePosition),document.removeEventListener("mouseup",stopDragging),document.removeEventListener("touchmove",updatePosition),document.removeEventListener("touchend",stopDragging);const e=this.gui.getBoundingClientRect();this.settings.menuLeftPx=e.left,this.settings.menuTopPx=e.top,this.saveSettings("anonimbiri_settings",this.settings)};header.addEventListener("mousedown",startDragging),header.addEventListener("touchstart",startDragging,{passive:!1});
+        }
+
+        isPlayerVisible(player) {
+            // UPDATED: This function now clearly handles "wallbangs" (aiming through walls).
+            // If aimbotWallCheck is OFF, we immediately return true, allowing the aimbot to target the player.
+            // This is the equivalent of the "wallbangs" feature in Dogeware.
+            if (!this.settings.aimbotWallCheck) {
+                return true;
+            }
+
+            // If wall check is ON, proceed with the raycast.
+            if (!player.bodyParts?.head || !this.camera) {
+                return false;
+            }
+
+            const targetPos = new this.THREE.Vector3();
+            this.getPartCenter(player.bodyParts.head, targetPos);
+
+            this.camera.getWorldPosition(this.cameraPos);
+            const direction = targetPos.clone().sub(this.cameraPos).normalize();
+            this.raycaster.set(this.cameraPos, direction);
+
+            // We only check against objects that are not the player itself.
+            const objectsToIntersect = this.scene.children.filter(obj => obj.type === 'Mesh' && obj.visible && obj.id !== player.id);
+            const intersects = this.raycaster.intersectObjects(objectsToIntersect, false);
+
+            if (intersects.length > 0) {
+                const distanceToPlayer = this.cameraPos.distanceTo(targetPos);
+                // If the first object hit by the ray is closer than the player, the player is obscured.
+                if (intersects[0].distance < distanceToPlayer - 1) {
+                    const hitObject = intersects[0].object;
+                     // A simple check to ignore small, irrelevant objects that might block the ray.
+                    if (hitObject.geometry) {
+                        if (!hitObject.geometry.boundingBox) hitObject.geometry.computeBoundingBox();
+                        const size = hitObject.geometry.boundingBox.getSize(new this.THREE.Vector3());
+                        if (size.y > 15 && (size.x > 15 || size.z > 15)) {
+                            return false; // It's a large object, likely a wall.
+                        }
+                    } else {
+                        return false; // Intersected something without geometry info, assume it's a wall.
                     }
-                });
-                label.addEventListener('click', e => e.stopPropagation());
-            });
-
-            this.elements.autoGuessCheckbox.addEventListener('change', (e) => {
-                this.toggleAutoGuess(e);
-                this.saveSettings();
-            });
-            this.elements.guessSpeed.addEventListener('input', (e) => {
-                this.updateGuessSpeed(e);
-                this.saveSettings();
-            });
-            this.elements.customWordsCheckbox.addEventListener('change', (e) => {
-                this.toggleCustomWords(e);
-                this.saveSettings();
-            });
-            this.elements.guessPattern.addEventListener('input', e => this.updateHitList(e.target.value.trim()));
-            this.elements.hitList.addEventListener('click', this.handleHitListClick.bind(this));
-
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                this.elements.wordListDropzone.addEventListener(eventName, this.preventDefaults, false);
-                this.elements.imageDropzone.addEventListener(eventName, this.preventDefaults, false);
-            });
-            this.elements.wordListDropzone.addEventListener('dragenter', () => this.elements.wordListDropzone.classList.add('drag-over'));
-            this.elements.wordListDropzone.addEventListener('dragover', () => this.elements.wordListDropzone.classList.add('drag-over'));
-            this.elements.wordListDropzone.addEventListener('dragleave', () => this.elements.wordListDropzone.classList.remove('drag-over'));
-            this.elements.wordListDropzone.addEventListener('drop', this.handleWordListDrop.bind(this));
-            this.elements.wordListInput.addEventListener('change', this.handleWordListInput.bind(this));
-
-            this.elements.imageDropzone.addEventListener('dragenter', () => this.elements.imageDropzone.classList.add('drag-over'));
-            this.elements.imageDropzone.addEventListener('dragover', () => this.elements.imageDropzone.classList.add('drag-over'));
-            this.elements.imageDropzone.addEventListener('dragleave', () => this.elements.imageDropzone.classList.remove('drag-over'));
-            this.elements.imageDropzone.addEventListener('drop', this.handleImageDrop.bind(this));
-            this.elements.imageUpload.addEventListener('change', this.handleImageInput.bind(this));
-            this.elements.cancelImage.addEventListener('click', this.cancelImagePreview.bind(this));
-            this.elements.googleSearchBtn.addEventListener('click', () => {
-                if (!window.game || !window.game._palavra || !window.game.turn) {
-                    this.showNotification(this.localize("Game not ready or not your turn! ✧"), 3000);
-                    return;
                 }
-                const word = window.game._palavra;
-                const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(word)}+vectorial&tbm=isch`;
-                window.open(searchUrl, '_blank');
-            });
-            this.elements.drawSpeed.addEventListener('input', (e) => {
-                this.updateDrawSpeed(e);
-                this.saveSettings();
-            });
-            this.elements.colorTolerance.addEventListener('input', (e) => {
-                this.updateColorTolerance(e);
-                this.saveSettings();
-            });
-            this.elements.sendDraw.addEventListener('click', this.toggleDrawing.bind(this));
+            }
 
-            this.elements.autoKickCheckbox.addEventListener('change', () => {
-                this.showNotification(`Auto Kick: ${this.elements.autoKickCheckbox.checked ? 'Enabled' : 'Disabled'}`, 2000);
-                this.saveSettings();
-            });
-            this.elements.noKickCooldownCheckbox.addEventListener('change', () => {
-                this.showNotification(`No Kick Cooldown: ${this.elements.noKickCooldownCheckbox.checked ? 'Enabled' : 'Disabled'}`, 2000);
-                this.saveSettings();
-            });
-            this.elements.chatBypassCensorship.addEventListener('change', () => {
-                this.showNotification(`Chat Bypass Censorship: ${this.elements.chatBypassCensorship.checked ? 'Enabled' : 'Disabled'}`, 2000);
-                this.saveSettings();
-            });
+            // If no objects are hit, or the closest hit object is farther than the player, the player is visible.
+            return true;
+        }
 
-            window.addEventListener('resize', () => {
-                const windowWidth = window.innerWidth;
-                const windowHeight = window.innerHeight;
-                const cheatWidth = this.elements.kawaiiCheat.offsetWidth;
-                const cheatHeight = this.elements.kawaiiCheat.offsetHeight;
-
-                let newX = this.state.xOffset;
-                let newY = this.state.yOffset;
-
-                newX = Math.max(0, Math.min(newX, windowWidth - cheatWidth));
-                newY = Math.max(0, Math.min(newY, windowHeight - cheatHeight));
-
-                if (newX !== this.state.xOffset || newY !== this.state.yOffset) {
-                    this.state.xOffset = newX;
-                    this.state.yOffset = newY;
-                    this.elements.kawaiiCheat.style.left = `${newX}px`;
-                    this.elements.kawaiiCheat.style.top = `${newY}px`;
-                    this.saveSettings();
+        findBodyParts(player) {
+            const parts = { head: null, body: null, arms: [], legs: [] }; const tempLimbs = [];
+            if (!player.children[0]?.children) return parts;
+            for (const child of player.children[0].children) {
+                if (child.name === 'leg') tempLimbs.push(child);
+                else if (child.type === 'Object3D' && child.children.length > 0) {
+                    for (const part of child.children) {
+                        if (part.name === 'head') parts.head = part; if (part.name === 'body') parts.body = part;
+                    }
                 }
-            });
-        }
-
-        startDragging(e) {
-            if (e.target !== this.elements.minimizeBtn) {
-                this.state.initialX = e.clientX - this.state.xOffset;
-                this.state.initialY = e.clientY - this.state.yOffset;
-                this.state.isDragging = true;
-                this.elements.kawaiiCheat.classList.add('dragging');
-                if (this.state.rafId) cancelAnimationFrame(this.state.rafId);
             }
-        }
-
-        drag(e) {
-            if (!this.state.isDragging) return;
-            e.preventDefault();
-            const newX = e.clientX - this.state.initialX;
-            const newY = e.clientY - this.state.initialY;
-
-            // Get window and menu dimensions
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            const cheatWidth = this.elements.kawaiiCheat.offsetWidth;
-            const cheatHeight = this.elements.kawaiiCheat.offsetHeight;
-
-            // Constrain position within window boundaries
-            const clampedX = Math.max(0, Math.min(newX, windowWidth - cheatWidth));
-            const clampedY = Math.max(0, Math.min(newY, windowHeight - cheatHeight));
-
-            if (this.state.rafId) cancelAnimationFrame(this.state.rafId);
-            this.state.rafId = requestAnimationFrame(() => {
-                this.elements.kawaiiCheat.style.left = `${clampedX}px`;
-                this.elements.kawaiiCheat.style.top = `${clampedY}px`;
-                this.state.xOffset = clampedX;
-                this.state.yOffset = clampedY;
-                this.saveSettings();
-            });
-        }
-
-        stopDragging() {
-            if (this.state.isDragging) {
-                this.state.isDragging = false;
-                this.elements.kawaiiCheat.classList.remove('dragging');
-                if (this.state.rafId) cancelAnimationFrame(this.state.rafId);
-                this.saveSettings();
+            if (tempLimbs.length >= 4) {
+                tempLimbs.sort((a, b) => b.position.y - a.position.y); parts.arms = tempLimbs.slice(0, 2); parts.legs = tempLimbs.slice(2, 4);
+                parts.arms.sort((a, b) => a.position.x - b.position.x); parts.legs.sort((a, b) => a.position.x - b.position.x);
             }
+            return parts;
         }
 
-        toggleMinimize() {
-            this.elements.kawaiiCheat.classList.toggle('minimized');
-            this.elements.minimizeBtn.textContent = this.elements.kawaiiCheat.classList.contains('minimized') ? '▲' : '▼';
+        getPartCenter(part, targetVector) {
+            if (!part?.geometry) return part.getWorldPosition(targetVector);
+            const geometry = part.geometry; if (!geometry.boundingBox) geometry.computeBoundingBox();
+            geometry.boundingBox.getCenter(targetVector); targetVector.applyMatrix4(part.matrixWorld);
         }
 
-        switchTab(btn) {
-            this.elements.tabButtons.forEach(b => b.classList.remove('active'));
-            this.elements.tabContents.forEach(c => c.style.display = 'none');
-            btn.classList.add('active');
-            document.getElementById(`${btn.dataset.tab}-tab`).style.display = 'flex';
-        }
+        createInfoSprite(playerName, iconUrl, callback) {
+            const showName = this.settings.espNameTags && playerName;
+            const showIcon = this.settings.espWeaponIcons && iconUrl;
 
-        toggleAutoGuess(e) {
-            this.elements.speedContainer.style.display = e.target.checked ? 'flex' : 'none';
-            if (!e.target.checked) this.stopAutoGuess();
-            else if (this.elements.guessPattern.value) this.startAutoGuess();
-        }
+            const iconImage = new Image();
+            iconImage.crossOrigin = "Anonymous";
 
-        updateGuessSpeed(e) {
-            this.updateSliderTrack(e.target);
-            this.elements.speedValue.textContent = e.target.value >= 1000 ? `${e.target.value / 1000}s` : `${e.target.value}ms`;
-            if (this.elements.autoGuessCheckbox.checked && this.state.autoGuessInterval) {
-                this.stopAutoGuess();
-                this.startAutoGuess();
-            }
-        }
+            iconImage.onload = () => {
+                const fontSize = 32;
+                const iconHeight = 32;
+                const iconWidth = iconHeight * 2;
+                const padding = 8;
+                const font = `bold ${fontSize}px Orbitron`;
 
-        toggleCustomWords(e) {
-            this.elements.wordListContainer.style.display = e.target.checked ? 'block' : 'none';
-            this.updateHitList(this.elements.guessPattern.value.trim());
-        }
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                context.font = font;
 
-        handleWordListDrop(e) {
-            this.elements.wordListDropzone.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file && file.type === 'text/plain') this.handleWordListFile(file);
-        }
+                let textWidth = 0;
+                if (showName) textWidth = context.measureText(playerName).width;
 
-        handleWordListInput(e) {
-            const file = e.target.files[0];
-            if (file) {
-                this.handleWordListFile(file);
-                e.target.value = '';
-            }
-        }
+                canvas.width = (showName ? textWidth + padding : 0) + (showIcon ? iconWidth + padding : 0) + padding;
+                canvas.height = Math.max(iconHeight, fontSize) + padding * 2;
+                context.font = font;
 
-        handleWordListFile(file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                this.wordList["Custom"] = event.target.result.split('\n').map(word => word.trim()).filter(word => word.length > 0);
-                this.showNotification(this.localize("Loaded ${wordList['Custom'].length} words from ${file.name}", {
-                    "wordList['Custom'].length": this.wordList["Custom"].length,
-                    "file.name": file.name
-                }), 4000);
-                this.updateHitList(this.elements.guessPattern.value.trim());
+                const themeColor = new this.THREE.Color(this.settings.boxColor);
+                context.fillStyle = `rgba(${themeColor.r * 255}, ${themeColor.g * 255}, ${themeColor.b * 255}, 0.6)`;
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.strokeStyle = this.settings.boxColor;
+                context.lineWidth = 4;
+                context.strokeRect(0, 0, canvas.width, canvas.height);
+
+                let currentX = padding;
+                context.textBaseline = 'middle';
+
+                if (showName) {
+                    context.shadowColor = "black";
+                    context.shadowBlur = 4;
+                    context.shadowOffsetX = 2;
+                    context.shadowOffsetY = 2;
+                    context.fillStyle = '#FFFFFF';
+                    context.fillText(playerName, currentX, canvas.height / 2);
+                    currentX += textWidth + padding;
+                }
+
+                if (showIcon) {
+                    context.drawImage(iconImage, currentX, (canvas.height - iconHeight) / 2, iconWidth, iconHeight);
+                }
+
+                const texture = new this.THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true;
+
+                const material = new this.THREE.SpriteMaterial({ map: texture, depthTest: false, sizeAttenuation: false });
+                const sprite = new this.THREE.Sprite(material);
+                const aspectRatio = canvas.height / canvas.width;
+
+                callback(sprite, aspectRatio);
             };
-            reader.readAsText(file);
+            iconImage.onerror = () => { if (showName) { this.createInfoSprite(playerName, null, callback); } };
+
+            if (showIcon) iconImage.src = iconUrl;
+            else if (showName) iconImage.onload();
+            else callback(null, 1);
         }
 
-        handleHitListClick(e) {
-            if (e.target.tagName !== 'BUTTON' || e.target.classList.contains('tried')) return;
-            const button = e.target;
-            button.classList.add('tried');
-            if (!this.state.triedLabelAdded && this.elements.hitList.querySelectorAll('button.tried').length === 1) {
-                const triedLabel = document.createElement('div');
-                triedLabel.classList.add('tried-label');
-                triedLabel.textContent = this.localize("Tried Words");
-                this.elements.hitList.appendChild(triedLabel);
-                this.state.triedLabelAdded = true;
-            }
-            if (window.game && window.game._socket) {
-                window.game._socket.emit(13, window.game._codigo, button.textContent);
-            }
-            this.elements.hitList.appendChild(button);
+        createPlayerESP(player) {
+            const esp = { skeleton: null, box: null, infoSprite: null, infoSignature: null, aspectRatio: 1 };
+            const boneGeo = new this.THREE.BufferGeometry();
+            boneGeo.setAttribute('position', new this.THREE.BufferAttribute(new Float32Array(12 * 3), 3));
+            const bones = new this.THREE.LineSegments(boneGeo, this.skeletonMaterial);
+            const headGeo = new this.THREE.RingGeometry(0.7, 0.9, 16);
+            const head = new this.THREE.Mesh(headGeo, this.skeletonMaterial);
+            esp.skeleton = new this.THREE.Group(); esp.skeleton.add(bones, head); this.scene.add(esp.skeleton);
+            esp.box = new this.THREE.LineLoop(this.squareGeometry, this.squareMaterial); this.scene.add(esp.box);
+            this.managedESP.set(player.id, { player, esp });
         }
 
-        startAutoGuess() {
-            if (!this.elements.autoGuessCheckbox.checked) return;
-            this.stopAutoGuess();
-            const speed = parseInt(this.elements.guessSpeed.value);
-            this.state.autoGuessInterval = setInterval(() => {
-                const buttons = this.elements.hitList.querySelectorAll('button:not(.tried)');
-                if (buttons.length > 0 && window.game && window.game._socket) {
-                    const word = buttons[0].textContent;
-                    buttons[0].classList.add('tried');
-                    window.game._socket.emit(13, window.game._codigo, word);
-                    if (!this.state.triedLabelAdded && this.elements.hitList.querySelectorAll('button.tried').length === 1) {
-                        const triedLabel = document.createElement('div');
-                        triedLabel.classList.add('tried-label');
-                        triedLabel.textContent = this.localize("Tried Words");
-                        this.elements.hitList.appendChild(triedLabel);
-                        this.state.triedLabelAdded = true;
-                    }
-                    this.elements.hitList.appendChild(buttons[0]);
-                }
-            }, speed);
-        }
-
-        stopAutoGuess() {
-            if (this.state.autoGuessInterval) {
-                clearInterval(this.state.autoGuessInterval);
-                this.state.autoGuessInterval = null;
+        removePlayerESP(playerId) {
+            if (this.managedESP.has(playerId)) {
+                const { esp } = this.managedESP.get(playerId);
+                if (esp.skeleton) this.scene.remove(esp.skeleton);
+                if (esp.box) this.scene.remove(esp.box);
+                if (esp.infoSprite) this.scene.remove(esp.infoSprite);
+                this.managedESP.delete(playerId);
             }
         }
 
-        updateHitList(pattern) {
-            if (!this.elements.hitList) return;
-            this.elements.hitList.innerHTML = '';
-            this.state.triedLabelAdded = false;
+        updatePlayerESP(player) {
+            if (!this.managedESP.has(player.id) || !player.bodyParts?.head || !this.camera) return;
+            const { esp } = this.managedESP.get(player.id);
+            const isTeammate = this.settings.espTeamCheck && player.isTeam;
+            const isInfoEnabled = (this.settings.espNameTags || this.settings.espWeaponIcons) && !isTeammate;
 
-            const activeTheme = this.elements.customWordsCheckbox.checked || !window.game || !window.game._dadosSala || !window.game._dadosSala.tema
-            ? "Custom"
-            : window.game._dadosSala.tema;
-            const activeList = this.wordList[activeTheme] || [];
+            if (isInfoEnabled) {
+                const currentSignature = `${player.playerName}_${player.weaponIcon}`;
 
-            if (!pattern) {
-                if (activeList.length === 0) {
-                    this.elements.hitList.innerHTML = `<div class="message">${this.localize(this.elements.customWordsCheckbox.checked ? "Upload a custom word list ✧" : "No words available ✧")}</div>`;
-                } else {
-                    activeList.forEach(word => {
-                        const button = document.createElement('button');
-                        button.textContent = word;
-                        this.elements.hitList.appendChild(button);
+                if (esp.infoSignature !== currentSignature && !player.isCreatingInfo) {
+                    if (esp.infoSprite) this.scene.remove(esp.infoSprite);
+                    esp.infoSprite = null;
+                    player.isCreatingInfo = true;
+
+                    this.createInfoSprite(player.playerName, player.weaponIcon, (sprite, aspectRatio) => {
+                        esp.infoSprite = sprite;
+                        if (sprite) {
+                            esp.aspectRatio = aspectRatio;
+                            this.scene.add(sprite);
+                            esp.infoSignature = currentSignature;
+                        }
+                        player.isCreatingInfo = false;
                     });
                 }
-                return;
             }
 
-            const regex = new RegExp(`^${pattern.split('').map(char => char === '_' ? '.' : char).join('')}$`, 'i');
-            const matches = activeList.filter(word => regex.test(word));
+            if (esp.infoSprite) {
+                esp.infoSprite.visible = isInfoEnabled;
+                if (isInfoEnabled) {
+                    const headPos = new this.THREE.Vector3();
+                    this.getPartCenter(player.bodyParts.head, headPos);
+                    esp.infoSprite.position.copy(headPos).y += 6;
 
-            if (matches.length === 0) {
-                this.elements.hitList.innerHTML = `<div class="message">${this.localize("No matches found ✧")}</div>`;
-            } else {
-                matches.forEach(word => {
-                    const button = document.createElement('button');
-                    button.textContent = word;
-                    this.elements.hitList.appendChild(button);
-                });
+                    const distance = esp.infoSprite.position.distanceTo(this.camera.position);
+
+                    const finalSizeOnScreen = 1.5;
+                    const scale = distance * (finalSizeOnScreen / 1000);
+
+                    esp.infoSprite.scale.set(scale, scale * esp.aspectRatio, 1);
+                    esp.infoSprite.quaternion.copy(this.camera.quaternion);
+                }
+            } else if (!isInfoEnabled && esp.infoSignature !== null) {
+                esp.infoSignature = null;
             }
-        }
 
-        async fetchWordList(theme) {
-            if (!this.wordList[theme] && this.wordListURLs[theme]) {
-                try {
-                    const response = await fetch(this.wordListURLs[theme]);
-                    if (!response.ok) throw new Error(`Failed to fetch ${theme} word list`);
-                    const data = await response.json();
-                    this.wordList[theme] = data.words || data;
-                } catch (error) {
-                    this.wordList[theme] = [];
+            const parts = player.bodyParts;
+            if (esp.skeleton) {
+                esp.skeleton.visible = this.settings.espSkeleton && !isTeammate;
+                if (esp.skeleton.visible) {
+                    const [bones, head] = esp.skeleton.children;
+                    const headPos = new this.THREE.Vector3(), bodyPos = new this.THREE.Vector3();
+                    const arm1Pos = new this.THREE.Vector3(), arm2Pos = new this.THREE.Vector3();
+                    const leg1Pos = new this.THREE.Vector3(), leg2Pos = new this.THREE.Vector3();
+                    this.getPartCenter(parts.head, headPos); this.getPartCenter(parts.body, bodyPos);
+                    if (parts.arms[0]) this.getPartCenter(parts.arms[0], arm1Pos);
+                    if (parts.arms[1]) this.getPartCenter(parts.arms[1], arm2Pos);
+                    if (parts.legs[0]) this.getPartCenter(parts.legs[0], leg1Pos);
+                    if (parts.legs[1]) this.getPartCenter(parts.legs[1], leg2Pos);
+                    esp.skeleton.position.copy(bodyPos);
+                    headPos.sub(esp.skeleton.position);
+                    if (parts.arms[0]) arm1Pos.sub(esp.skeleton.position); if (parts.arms[1]) arm2Pos.sub(esp.skeleton.position);
+                    if (parts.legs[0]) leg1Pos.sub(esp.skeleton.position); if (parts.legs[1]) leg2Pos.sub(esp.skeleton.position);
+                    head.position.copy(headPos); head.lookAt(this.cameraPos);
+                    const positions = bones.geometry.attributes.position.array; let i = 0;
+                    const setLocalPos = (p) => { positions[i++] = p.x; positions[i++] = p.y; positions[i++] = p.z; };
+                    setLocalPos(headPos); setLocalPos(new this.THREE.Vector3(0,0,0));
+                    if (parts.arms[0]) { setLocalPos(new this.THREE.Vector3(0,0,0)); setLocalPos(arm1Pos); }
+                    if (parts.arms[1]) { setLocalPos(new this.THREE.Vector3(0,0,0)); setLocalPos(arm2Pos); }
+                    if (parts.legs[0]) { setLocalPos(new this.THREE.Vector3(0,0,0)); setLocalPos(leg1Pos); }
+                    if (parts.legs[1]) { setLocalPos(new this.THREE.Vector3(0,0,0)); setLocalPos(leg2Pos); }
+                    bones.geometry.attributes.position.needsUpdate = true; bones.geometry.setDrawRange(0, i / 3); bones.geometry.computeBoundingSphere();
                 }
             }
-        }
-
-        handleImageDrop(e) {
-            this.elements.imageDropzone.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) this.handleImageFile(file);
-        }
-
-        handleImageInput(e) {
-            const file = e.target.files[0];
-            if (file) {
-                this.handleImageFile(file);
-                e.target.value = '';
-            }
-        }
-
-        handleImageFile(file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                this.elements.previewImg.src = event.target.result;
-                this.elements.imageDropzone.style.display = 'none';
-                this.elements.imagePreview.style.display = 'block';
-                this.elements.sendDraw.disabled = false;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        cancelImagePreview() {
-            this.elements.previewImg.src = '';
-            this.elements.imageDropzone.style.display = 'flex';
-            this.elements.imagePreview.style.display = 'none';
-            this.elements.sendDraw.disabled = true;
-            this.elements.imageUpload.value = '';
-        }
-
-        updateDrawSpeed(e) {
-            this.updateSliderTrack(e.target);
-            this.elements.drawSpeedValue.textContent = e.target.value >= 1000 ? `${e.target.value / 1000}s` : `${e.target.value}ms`;
-        }
-
-        updateColorTolerance(e) {
-            this.updateSliderTrack(e.target);
-            this.elements.colorToleranceValue.textContent = e.target.value;
-        }
-
-        toggleDrawing() {
-            if (!this.elements.previewImg.src) return;
-
-            if (!this.isDrawing) {
-                if (!window.game || !window.game.turn) {
-                    this.showNotification(this.localize("Not your turn or game not loaded! ✧"), 3000);
-                    return;
-                }
-                this.isDrawing = true;
-                this.elements.sendDraw.textContent = this.localize("Stop Drawing ✧");
-                this.processAndDrawImage(this.elements.previewImg.src);
-            } else {
-                this.isDrawing = false;
-                this.stopDrawing();
+            if (esp.box) {
+                esp.box.visible = this.settings.espSquare && !isTeammate;
+                if (esp.box.visible) { this.getPartCenter(parts.body, esp.box.position); esp.box.lookAt(this.cameraPos); }
             }
         }
 
-        initializeGameCheck() {
-            const checkGame = setInterval(() => {
-                if (window.game) {
-                    clearInterval(checkGame);
-                    const currentTheme = window.game._dadosSala.tema || "Custom";
-                    if (currentTheme !== "Custom") {
-                        this.fetchWordList(currentTheme).then(() => this.updateHitList(this.elements.guessPattern.value.trim()));
-                    }
-                }
-            }, 100);
+        bhopSequence() {
+            if (!this.myPlayer || !this.settings.bhopEnabled || !this.spacebarDown) { this.bhopIsCrouching = false; clearTimeout(this.bhopLoopTimeout); return; }
+            clearTimeout(this.bhopLoopTimeout);
+            if (this.myPlayer.onGround) { this.simulateKey(32); this.bhopIsCrouching = true; this.bhopLoopTimeout = setTimeout(() => this.bhopSequence(), 30); }
+            else if (this.bhopIsCrouching) { this.simulateKey(16); this.bhopIsCrouching = false; this.bhopLoopTimeout = setTimeout(() => this.bhopSequence(), 30); }
+            else { this.bhopLoopTimeout = setTimeout(() => this.bhopSequence(), 10); }
         }
 
-        async processAndDrawImage(imageSrc) {
-            if (!window.game || !window.game._socket || !window.game._desenho || !window.game.turn) {
-                this.showNotification(this.localize("Game not ready or not your turn! ✧"), 3000);
-                this.stopDrawing();
-                return;
+        handleAutoFire(targetPlayer) {
+            clearInterval(this.autoFireTimer);
+            const shouldFire = this.settings.autoFireEnabled && (!this.settings.aimbotEnabled || (this.settings.aimbotEnabled && targetPlayer));
+            if (shouldFire) { this.autoFireTimer = setInterval(() => { this.simulateMouse('mousedown', 0); setTimeout(() => this.simulateMouse('mouseup', 0), 20); }, 100); }
+        }
+
+        stopAutoFire() { clearInterval(this.autoFireTimer); this.simulateMouse('mouseup', 0); }
+
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            this.materials.forEach(m => { if (m?.uniforms.u_time) m.uniforms.u_time.value += 0.016; });
+            if (this.scene && this.myPlayer && !this.scene.children.includes(this.myPlayer)) {
+                for (const playerId of this.managedESP.keys()) this.removePlayerESP(playerId);
+                this.scene = null; this.myPlayer = null; this.players = []; this.stopAutoFire(); clearTimeout(this.bhopLoopTimeout); this.myTeamId = null; this.camera = null; return;
             }
-
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-
-            img.onload = async () => {
-                let gameCanvas, ctx, canvasWidth, canvasHeight;
-                try {
-                    gameCanvas = window.game._desenho._canvas.canvas;
-                    if (!gameCanvas || !(gameCanvas instanceof HTMLCanvasElement)) throw new Error("Canvas not accessible!");
-                    ctx = gameCanvas.getContext('2d', { willReadFrequently: true });
-                    if (!ctx) throw new Error("Canvas context not available!");
-                    canvasWidth = Math.floor(gameCanvas.width);
-                    canvasHeight = Math.floor(gameCanvas.height);
-                    if (canvasWidth <= 0 || canvasHeight <= 0) throw new Error("Invalid canvas dimensions!");
-                } catch (e) {
-                    this.showNotification(this.localize(e.message.includes("Canvas not accessible") ? "Canvas not accessible! ✧" : "Canvas context not available! ✧"), 3000);
-                    this.stopDrawing();
-                    return;
-                }
-
-                const { tempCtx, imgLeft, imgRight, imgTop, imgBottom } = this.prepareImageCanvas(img, canvasWidth, canvasHeight);
-                if (!tempCtx) {
-                    this.showNotification(this.localize("Temp canvas context failed! ✧"), 3000);
-                    this.stopDrawing();
-                    return;
-                }
-
-                const { imageData, data } = this.getImageData(tempCtx, canvasWidth, canvasHeight);
-                if (!imageData) {
-                    this.stopDrawing();
-                    return;
-                }
-
-                const drawSpeedValue = parseInt(this.elements.drawSpeed.value) || 200;
-                const colorToleranceValue = parseInt(this.elements.colorTolerance.value) || 20;
-
-                const regions = await this.detectRegions(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, colorToleranceValue);
-                if (!this.isDrawing || !window.game.turn) {
-                    this.stopDrawing();
-                    return;
-                }
-
-                this.showNotification(`Processing ${regions.length} color regions...`, 2000);
-                for (const region of regions) {
-                    if (!this.isDrawing || !window.game.turn) {
-                        this.showNotification(this.localize("Drawing stopped! ✧"), 2000);
-                        this.stopDrawing();
-                        return;
-                    }
-
-                    try {
-                        await this.fillRegion(region.coords, region.hex);
-                        await this.delay(drawSpeedValue);
-                    } catch (e) {
-                        console.error("Kawaii Helper: Error during region fill:", e);
-                        this.showNotification("Error during region fill.", 2000);
-                    }
-                }
-
-                if (this.isDrawing && window.game.turn) {
-                    this.showNotification(this.localize("Drawing completed! ✧"), 3000);
-                }
-                this.stopDrawing();
-            };
-
-            img.onerror = () => {
-                this.showNotification(this.localize("Failed to load image! ✧"), 3000);
-                this.stopDrawing();
-            };
-
-            img.src = imageSrc;
-        }
-
-        prepareImageCanvas(img, canvasWidth, canvasHeight) {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvasWidth;
-            tempCanvas.height = canvasHeight;
-            const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
-
-            const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height);
-            const newWidth = Math.floor(img.width * scale);
-            const newHeight = Math.floor(img.height * scale);
-            const offsetX = Math.floor((canvasWidth - newWidth) / 2);
-            const offsetY = Math.floor((canvasHeight - newHeight) / 2);
-
-            tempCtx.imageSmoothingEnabled = false;
-            tempCtx.fillStyle = 'white';
-            tempCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-            tempCtx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
-
-            return {
-                tempCtx,
-                imgLeft: offsetX,
-                imgRight: offsetX + newWidth,
-                imgTop: offsetY,
-                imgBottom: offsetY + newHeight
-            };
-        }
-
-        getImageData(tempCtx, canvasWidth, canvasHeight) {
-            let imageData, data;
+            if (!this.scene) { this.attemptInjection(); return; }
+            const players = []; let myPlayer = null;
             try {
-                imageData = tempCtx.getImageData(0, 0, canvasWidth, canvasHeight);
-                data = imageData.data;
-            } catch (e) {
-                this.showNotification(this.localize("Image data error: ${e.message} ✧", { "e.message": e.message }), 3000);
-                return { imageData: null, data: null };
-            }
-            return { imageData, data };
-        }
-
-        async detectRegions(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, colorToleranceValue) {
-            const backgroundColor = [255, 255, 255, 255];
-            const visited = new Uint8Array(canvasWidth * canvasHeight);
-            const regions = [];
-
-            const getColorAt = (x, y) => {
-                if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) {
-                    return backgroundColor;
-                }
-                const index = (y * canvasWidth + x) * 4;
-                return [data[index], data[index + 1], data[index + 2], data[index + 3]];
-            };
-
-            const traceRegion = (startX, startY, startColor, tolerance) => {
-                const regionCoords = [];
-                const stack = [[startX, startY]];
-                const currentRegionVisited = new Set([`${startX},${startY}`]);
-                let minX = startX, minY = startY, maxX = startX, maxY = startY;
-
-                visited[startY * canvasWidth + startX] = 1;
-
-                const neighbors = [
-                    [1, 0], [-1, 0], [0, 1], [0, -1] // 4-direction check
-                ];
-
-                while (stack.length > 0) {
-                    const [x, y] = stack.pop();
-                    regionCoords.push([x, y]);
-                    minX = Math.min(minX, x); minY = Math.min(minY, y);
-                    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
-
-                    for (const [dx, dy] of neighbors) {
-                        const nx = x + dx;
-                        const ny = y + dy;
-                        const nKey = `${nx},${ny}`;
-                        if (nx >= imgLeft && nx <= imgRight && ny >= imgTop && ny <= imgBottom &&
-                            visited[ny * canvasWidth + nx] === 0 &&
-                            !currentRegionVisited.has(nKey)
-                           ) {
-                            const neighborColor = getColorAt(nx, ny);
-                            const distance = this.colorDistance(neighborColor, startColor);
-
-                            if (distance <= tolerance * 1.2) { // Dynamic tolerance
-                                visited[ny * canvasWidth + nx] = 1;
-                                currentRegionVisited.add(nKey);
-                                stack.push([nx, ny]);
-                            }
-                        }
+                for (const child of this.scene.children) {
+                    if (!child) continue;
+                     if (child.type === 'Object3D' && child.children[0]?.children[0]?.type === 'PerspectiveCamera') {
+                        myPlayer = child;
+                        this.camera = child.children[0].children[0];
+                    } else if (child.type === 'Object3D' && child.position.x !== 0 && child.position.z !== 0) {
+                         if (!child.bodyParts) child.bodyParts = this.findBodyParts(child);
+                         if (child.bodyParts.head && child.bodyParts.body && child.bodyParts.legs.length >= 2) {
+                            players.push(child);
+                         }
+                    } else if (child.material) {
+                        if (Array.isArray(child.material)) { for (const material of child.material) material.wireframe = this.settings.wireframeEnabled; }
+                        else child.material.wireframe = this.settings.wireframeEnabled;
                     }
                 }
+            } catch (err) {}
+            this.myPlayer = myPlayer; this.players = players; if (!this.myPlayer) return;
 
-                return regionCoords.length > 0 ? { // Allow smaller regions
-                    coords: regionCoords,
-                    color: startColor.slice(0, 3),
-                    bounds: { minX, minY, maxX, maxY }
-                } : null;
-            };
+            const currentPlayerIds = new Set(this.players.map(p => p.id));
+            for (const playerId of this.managedESP.keys()) { if (!currentPlayerIds.has(playerId)) this.removePlayerESP(playerId); }
 
-            for (let y = imgTop; y <= imgBottom && this.isDrawing; y += 1) {
-                for (let x = imgLeft; x <= imgRight && this.isDrawing; x += 1) {
-                    if (!window.game.turn) { this.stopDrawing(); return []; }
-                    const index = y * canvasWidth + x;
-                    if (visited[index] === 1) continue;
+            let espLineCounter = 0;
+            if (!this.espLine && this.settings.espLines) { this.espLine = new this.THREE.LineSegments(this.espLineGeometry, this.lineMaterial); this.espLine.frustumCulled = false; this.myPlayer.add(this.espLine); }
 
-                    const pixelColor = getColorAt(x, y);
-                    const regionResult = traceRegion(x, y, pixelColor, colorToleranceValue);
+            if (this.camera) this.camera.getWorldPosition(this.cameraPos);
 
-                    if (regionResult) {
-                        if (this.colorDistance(regionResult.color, backgroundColor) > colorToleranceValue) {
-                            regions.push({
-                                color: regionResult.color,
-                                hex: this.rgbToHex(regionResult.color),
-                                coords: regionResult.coords,
-                                size: regionResult.coords.length,
-                                bounds: regionResult.bounds
-                            });
-                        }
-                    } else {
-                        visited[index] = 1;
+            const linePositions = this.espLinePositionsAttribute?.array;
+            for (const player of this.players) {
+                if (player.id === this.myPlayer.id) continue;
+                if (!this.managedESP.has(player.id)) this.createPlayerESP(player);
+                this.updatePlayerESP(player);
+                if (this.settings.espLines && linePositions && !(this.settings.espTeamCheck && player.isTeam)) {
+                    this.getPartCenter(player.bodyParts.body, this.tempVector);
+                    this.tempObject.matrix.copy(this.myPlayer.matrixWorld).invert();
+                    this.tempVector.applyMatrix4(this.tempObject.matrix);
+                    linePositions[espLineCounter++] = 0; linePositions[espLineCounter++] = -5; linePositions[espLineCounter++] = 0;
+                    linePositions[espLineCounter++] = this.tempVector.x; linePositions[espLineCounter++] = this.tempVector.y; linePositions[espLineCounter++] = this.tempVector.z;
+                }
+            }
+
+            if (this.settings.espLines && this.espLine) { this.espLinePositionsAttribute.needsUpdate = true; this.espLine.geometry.setDrawRange(0, espLineCounter / 3); this.espLine.visible = espLineCounter > 0; }
+            else if (this.espLine) { this.espLine.visible = false; }
+
+            let targetPlayer = null;
+            if (this.settings.aimbotEnabled) {
+                const sortedPlayers = [...this.players].sort((a, b) => this.myPlayer.position.distanceTo(a.position) - this.myPlayer.position.distanceTo(b.position));
+                for (const player of sortedPlayers) {
+                    if (player.id === this.myPlayer.id) continue;
+                    if (this.settings.aimbotTeamCheck && player.isTeam) continue;
+                    if (this.isPlayerVisible(player)) { // This check now respects the wallbang setting
+                        targetPlayer = player;
+                        break;
                     }
                 }
             }
 
-            regions.sort((a, b) => b.size - a.size);
-            return regions;
+            this.handleAutoFire(targetPlayer);
+            if (!targetPlayer || (this.settings.aimbotOnRightMouse && !this.rightMouseDown)) return;
+
+            try { this.getPartCenter(targetPlayer.bodyParts.head, this.tempVector); this.tempVector.y -= 2; }
+            catch (e) { targetPlayer.getWorldPosition(this.tempVector); this.tempVector.y += 5; }
+
+            if (this.tempVector.lengthSq() < 0.01 || !this.camera) return;
+
+            const lookAtOrigin = new this.THREE.Vector3();
+            this.camera.getWorldPosition(lookAtOrigin);
+            this.tempObject.position.copy(lookAtOrigin);
+            this.tempObject.lookAt(this.tempVector);
+            const lerpFactor = 0.7;
+            this.myPlayer.rotation.y = this.lerpAngle(this.myPlayer.rotation.y, this.tempObject.rotation.y + Math.PI, lerpFactor);
+            this.myPlayer.children[0].rotation.x = this.lerpAngle(this.myPlayer.children[0].rotation.x, -this.tempObject.rotation.x, lerpFactor);
         }
 
-        areRegionsClose(boundsA, boundsB, threshold) {
-            const horizontalClose = Math.abs(boundsA.maxX - boundsB.minX) <= threshold ||
-                  Math.abs(boundsB.maxX - boundsA.minX) <= threshold;
-            const verticalClose = Math.abs(boundsA.maxY - boundsB.minY) <= threshold ||
-                  Math.abs(boundsB.maxY - boundsA.minY) <= threshold;
-            return horizontalClose && verticalClose;
-        }
-
-        async fillRegion(region, colorHex) {
-            if (!this.isDrawing || !window.game || !window.game._socket || !window.game.turn) {
-                this.stopDrawing();
-                return;
-            }
-
-            const canvas = window.game._desenho._canvas.canvas;
-            const ctx = canvas.getContext('2d');
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-
-            const regionSet = new Set(region.map(([x, y]) => `${x},${y}`));
-            const visited = new Set();
-            const fills = [];
-            const queue = [region[0]];
-
-            const isInRegion = (x, y) => regionSet.has(`${x},${y}`) && !visited.has(`${x},${y}`);
-
-            while (queue.length > 0 && this.isDrawing) {
-                const [x, y] = queue.shift();
-                if (!isInRegion(x, y)) continue;
-
-                let leftX = x;
-                let rightX = x;
-
-                while (leftX - 1 >= 0 && isInRegion(leftX - 1, y)) leftX--;
-                while (rightX + 1 < canvasWidth && isInRegion(rightX + 1, y)) rightX++;
-
-                const width = rightX - leftX + 1;
-                fills.push([leftX, y, width, 1]);
-
-                for (let i = leftX; i <= rightX; i++) visited.add(`${i},${y}`);
-
-                if (y - 1 >= 0) {
-                    for (let i = leftX; i <= rightX; i++) {
-                        if (isInRegion(i, y - 1)) queue.push([i, y - 1]);
-                    }
-                }
-                if (y + 1 < canvasHeight) {
-                    for (let i = leftX; i <= rightX; i++) {
-                        if (isInRegion(i, y + 1)) queue.push([i, y + 1]);
-                    }
-                }
-            }
-
-            if (fills.length > 0 && this.isDrawing) {
-                window.game._socket.emit(10, window.game._codigo, [5, colorHex]);
-                ctx.fillStyle = `#${colorHex.slice(1)}`;
-
-                const fillCommand = [3, ...fills.flat()];
-                window.game._socket.emit(10, window.game._codigo, fillCommand);
-                fills.forEach(([x, y, w, h]) => ctx.fillRect(x, y, w, h));
-            }
-        }
-
-        stopDrawing() {
-            this.isDrawing = false;
-            this.elements.sendDraw.textContent = this.localize("Draw Now ✧");
-            this.elements.sendDraw.disabled = !(this.elements.previewImg.src && this.elements.previewImg.src !== '#');
-        }
-
-        colorDistance(color1_rgb, color2_rgb) {
-            if (!color1_rgb || !color2_rgb || color1_rgb.length < 3 || color2_rgb.length < 3) return Infinity;
-            const rDiff = color1_rgb[0] - color2_rgb[0];
-            const gDiff = color1_rgb[1] - color2_rgb[1];
-            const bDiff = color1_rgb[2] - color2_rgb[2];
-            return Math.sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff);
-        }
-
-        rgbToHex(rgb) {
-            if (!rgb || rgb.length < 3) return '#000000';
-            const r = Math.min(255, Math.max(0, Math.round(rgb[0])));
-            const g = Math.min(255, Math.max(0, Math.round(rgb[1])));
-            const b = Math.min(255, Math.max(0, Math.round(rgb[2])));
-            return 'x' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-        }
-
-        delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+        lerpAngle(start, end, t) {
+            let d = (end - start) % (2 * Math.PI);
+            return start + (d > Math.PI ? d - 2 * Math.PI : d < -Math.PI ? d + 2 * Math.PI : d) * t;
         }
     }
 
-    KawaiiHelper.init();
+    if (document.readyState === 'loading') { window.addEventListener('DOMContentLoaded', () => new KrunkerCheats()); }
+    else { new KrunkerCheats(); }
 })();
