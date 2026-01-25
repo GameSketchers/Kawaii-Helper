@@ -2,7 +2,7 @@
 // @name         Kawaii Helper & Drawing Bot for Gartic.io
 // @name:tr      Gartic.io için Kawaii Yardımcı & Çizim Botu
 // @namespace    https://github.com/GameSketchers/Kawaii-Helper
-// @version      2025-05-22
+// @version      2026-01-25
 // @description  Helper for Gartic.io with auto-guess, drawing assistance, and drawing bot
 // @description:tr  Gartic.io için otomatik tahmin, çizim yardımı ve çizim botu ile yardımcı
 // @author       anonimbiri & Gartic-Developers
@@ -18,6 +18,14 @@
 // @grant        none
 // @noframes
 // ==/UserScript==
+
+/*
+This project is no longer maintained/updated.
+You are free to modify and redistribute this code.
+Please ensure appropriate credit is given upon sharing.
+
+by anonimbiri
+*/
 
 (function() {
     'use strict';
@@ -104,9 +112,9 @@
             this.isDrawing = false;
             this.wordList = { "Custom": [] };
             this.wordListURLs = {
-                "General (en)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/English/general.json",
-                "General (tr)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/Turkish/general.json",
-                "General (ja)": "https://cdn.jsdelivr.net/gh/Qwyua/Gartic-WordList@master/languages/Japanese/general.json"
+                "General (en)": "https://cdn.jsdelivr.net/gh/GameSketchers/Game-WordList@master/languages/English/general.json",
+                "General (tr)": "https://cdn.jsdelivr.net/gh/GameSketchers/Game-WordList@master/languages/Turkish/general.json",
+                "General (ja)": "https://cdn.jsdelivr.net/gh/GameSketchers/Game-WordList@master/languages/Japanese/general.json"
             };
             this.elements = {};
             this.state = {
