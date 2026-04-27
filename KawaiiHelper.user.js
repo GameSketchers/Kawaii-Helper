@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         Kawaii Helper & Drawing Bot for Gartic.io
 // @name:tr      Gartic.io için Kawaii Yardımcı & Çizim Botu
+// @name:ja      Gartic.io用 Kawaii Helper ＆ 描画ボット
 // @namespace    https://github.com/GameSketchers/Kawaii-Helper
-// @version      2026-01-25
+// @version      2026-04-27
 // @description  Helper for Gartic.io with auto-guess, drawing assistance, and drawing bot
 // @description:tr  Gartic.io için otomatik tahmin, çizim yardımı ve çizim botu ile yardımcı
+// @description:ja  自動推測、描画アシスト、描画ボットを備えたGartic.io用ヘルパー
 // @author       anonimbiri & Gartic-Developers
 // @license      MIT
 // @match        *://*.gartic.io/*
@@ -18,14 +20,6 @@
 // @grant        none
 // @noframes
 // ==/UserScript==
-
-/*
-This project is no longer maintained/updated.
-You are free to modify and redistribute this code.
-Please ensure appropriate credit is given upon sharing.
-
-by anonimbiri
-*/
 
 (function() {
     'use strict';
@@ -68,7 +62,8 @@ by anonimbiri
                     "Auto Kick": "Auto Kick",
                     "No Kick Cooldown": "No Kick Cooldown",
                     "Chat Bypass Censorship": "Chat Bypass Censorship",
-                    "New update available!": "New update available!"
+                    "New update available!": "New update available!",
+                    "Drawing... ${count} color groups created.": "Drawing... ${count} color groups created."
                 },
                 tr: {
                     "✧ Kawaii Helper ✧": "✧ Kawaii Yardımcı ✧",
@@ -105,7 +100,46 @@ by anonimbiri
                     "Auto Kick": "Otomatik Atma",
                     "No Kick Cooldown": "Atma Bekleme Süresi Yok",
                     "Chat Bypass Censorship": "Sohbet Sansürünü Atlat",
-                    "New update available!": "Yeni güncelleme var!"
+                    "New update available!": "Yeni güncelleme var!",
+                    "Drawing... ${count} color groups created.": "Çiziliyor... ${count} renk grubu oluşturuldu."
+                },
+                ja: {
+                    "✧ Kawaii Helper ✧": "✧ Kawaii ヘルパー ✧",
+                    "Guessing": "推測",
+                    "Drawing": "描画",
+                    "Auto Guess": "自動推測",
+                    "Speed": "速度",
+                    "Custom Words": "カスタム単語",
+                    "Drop word list here or click to upload": "単語リストをここにドロップするか、クリックしてアップロード",
+                    "Enter pattern (e.g., ___e___)": "パターンを入力 (例: ___e___)",
+                    "Type a pattern to see matches ✧": "パターンを入力して一致を確認 ✧",
+                    "Upload a custom word list ✧": "カスタム単語リストをアップロード ✧",
+                    "No words available ✧": "利用可能な単語がありません ✧",
+                    "No matches found ✧": "一致するものがありません ✧",
+                    "Tried Words": "試した単語",
+                    "Drop image here or click to upload": "画像をここにドロップするか、クリックしてアップロード",
+                    "Search on Google Images 🡵": "Google画像検索 🡵",
+                    "Draw Speed": "描画速度",
+                    "Color Tolerance": "色の許容範囲",
+                    "Draw Now ✧": "今すぐ描画 ✧",
+                    "Stop Drawing ✧": "描画を停止 ✧",
+                    "Made with ♥ by Anonimbiri & GameSketchers": "Made with ♥ by Anonimbiri & GameSketchers",
+                    "Loaded ${wordList['Custom'].length} words from ${file.name}": "${file.name} から ${wordList['Custom'].length} 語を読み込みました",
+                    "Not your turn or game not loaded! ✧": "あなたのターンではないか、ゲームが読み込まれていません！ ✧",
+                    "Game not ready or not your turn! ✧": "ゲームの準備ができていないか、あなたのターンではありません！ ✧",
+                    "Canvas not accessible! ✧": "キャンバスにアクセスできません！ ✧",
+                    "Canvas context not available! ✧": "キャンバスコンテキストが利用できません！ ✧",
+                    "Temp canvas context failed! ✧": "一時キャンバスの取得に失敗しました！ ✧",
+                    "Image data error: ${e.message} ✧": "画像データエラー: ${e.message} ✧",
+                    "Drawing completed! ✧": "描画が完了しました！ ✧",
+                    "Failed to load image! ✧": "画像の読み込みに失敗しました！ ✧",
+                    "Drawing stopped! ✧": "描画を停止しました！ ✧",
+                    "Settings": "設定",
+                    "Auto Kick": "自動キック",
+                    "No Kick Cooldown": "キックの待機時間なし",
+                    "Chat Bypass Censorship": "チャットの検閲を回避",
+                    "New update available!": "新しいアップデートが利用可能です！",
+                    "Drawing... ${count} color groups created.": "描画中... ${count} 個のカラーグループを作成しました。"
                 }
             };
             this.currentLang = navigator.language.split('-')[0] in this.translations ? navigator.language.split('-')[0] : 'en';
@@ -166,7 +200,7 @@ by anonimbiri
                 autoKick: false,
                 noKickCooldown: false,
                 chatBypassCensorship: false,
-                drawSpeed: 200,
+                drawSpeed: 110,
                 colorTolerance: 20,
                 position: null
             };
@@ -260,8 +294,6 @@ by anonimbiri
         interceptScripts() {
             const roomScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/room.js`;
             const createScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/create.js`;
-            /*const roomScript = `https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@master/GameSource/room.js`;
-            const createScript = `https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@master/GameSource/create.js`;*/
 
             function downloadFileSync(url) {
                 const request = new XMLHttpRequest();
@@ -317,7 +349,7 @@ by anonimbiri
             const kawaiiHTML = `
         <div class="kawaii-cheat" id="kawaiiCheat">
             <div class="kawaii-header" id="kawaiiHeader">
-                <img src="https://cdn.jsdelivr.net/gh/anonimbiri-IsBack/Kawaii-Helper-copy@refs/heads/main/Assets/kawaii-logo.png" alt="Anime Girl" class="header-icon">
+                <img src="https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@refs/heads/main/Assets/kawaii-logo.png" alt="Anime Girl" class="header-icon">
                 <h2 data-translate="✧ Kawaii Helper ✧">✧ Kawaii Helper ✧</h2>
                 <button class="minimize-btn" id="minimizeBtn">▼</button>
             </div>
@@ -380,9 +412,9 @@ by anonimbiri
                     <div class="slider-container">
                         <div class="slider-label" data-translate="Draw Speed">Draw Speed</div>
                         <div class="custom-slider">
-                            <input type="range" id="drawSpeed" min="20" max="5000" value="200" step="100">
+                            <input type="range" id="drawSpeed" min="5" max="1000" value="110" step="5">
                             <div class="slider-track"></div>
-                            <span id="drawSpeedValue">200ms</span>
+                            <span id="drawSpeedValue">110ms</span>
                         </div>
                     </div>
                     <div class="slider-container">
@@ -1385,13 +1417,11 @@ by anonimbiri
             const newX = e.clientX - this.state.initialX;
             const newY = e.clientY - this.state.initialY;
 
-            // Get window and menu dimensions
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             const cheatWidth = this.elements.kawaiiCheat.offsetWidth;
             const cheatHeight = this.elements.kawaiiCheat.offsetHeight;
 
-            // Constrain position within window boundaries
             const clampedX = Math.max(0, Math.min(newX, windowWidth - cheatWidth));
             const clampedY = Math.max(0, Math.min(newY, windowHeight - cheatHeight));
 
@@ -1680,29 +1710,89 @@ by anonimbiri
                     return;
                 }
 
-                const drawSpeedValue = parseInt(this.elements.drawSpeed.value) || 200;
+                const drawSpeedValue = parseInt(this.elements.drawSpeed.value) || 110;
                 const colorToleranceValue = parseInt(this.elements.colorTolerance.value) || 20;
 
-                const regions = await this.detectRegions(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, colorToleranceValue);
+                const blocksByColor = this.extractSmartBlocks(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, colorToleranceValue);
+
                 if (!this.isDrawing || !window.game.turn) {
                     this.stopDrawing();
                     return;
                 }
 
-                this.showNotification(`Processing ${regions.length} color regions...`, 2000);
-                for (const region of regions) {
-                    if (!this.isDrawing || !window.game.turn) {
-                        this.showNotification(this.localize("Drawing stopped! ✧"), 2000);
-                        this.stopDrawing();
-                        return;
-                    }
+                let colorCount = Object.keys(blocksByColor).length;
+                this.showNotification(this.localize("Drawing... ${count} color groups created.", { "count": colorCount }), 2000);
 
-                    try {
-                        await this.fillRegion(region.coords, region.hex);
+                const emitAndRender = (cmdArray) => {
+                    if (cmdArray[0] === 5) {
+                        window.game._socket.emit(10, window.game._codigo, cmdArray);
+                        window.game._desenho.mudaCor(cmdArray[1], false);
+                    }
+                    else if (cmdArray[0] === 6) {
+                        window.game._socket.emit(10, window.game._codigo, cmdArray);
+                        window.game._desenho.mudaBorda(cmdArray[1], false);
+                    }
+                    else if (cmdArray[0] === 1 && cmdArray[1] === 2) {
+                        window.game._socket.emit(10, window.game._codigo, cmdArray);
+                        window.game._desenho.desenhar(cmdArray[2], cmdArray[3], cmdArray[4], cmdArray[5], 2, 0, false);
+                    }
+                    else if (cmdArray[0] === 1 && cmdArray[1] === 6) {
+                        window.game._socket.emit(10, window.game._codigo, cmdArray);
+                        window.game._desenho.desenhar(cmdArray[2], cmdArray[3], cmdArray[4], cmdArray[5], 6, 0, false);
+                    }
+                    else if (cmdArray[0] === 2) {
+                        window.game._socket.emit(10, window.game._codigo, cmdArray);
+                        for(let i=3; i<cmdArray.length; i+=2) {
+                            window.game._desenho.linhaSeq([[cmdArray[i-2], cmdArray[i-1]], [cmdArray[i], cmdArray[i+1]]], 0);
+                        }
+                    }
+                    else if (cmdArray[0] === 7) {
+                        window.game._socket.emit(10, window.game._codigo, cmdArray);
+                        window.game._desenho.balde(cmdArray[1], cmdArray[2]);
+                    }
+                };
+
+                for (const hexColor in blocksByColor) {
+                    if (!this.isDrawing || !window.game.turn) break;
+
+                    const blocks = blocksByColor[hexColor];
+                    if (blocks.length === 0) continue;
+
+                    emitAndRender([5, hexColor]);
+                    await this.delay(30);
+
+                    for (const block of blocks) {
+                        if (!this.isDrawing || !window.game.turn) break;
+
+                        if (block.w > 40 && block.h > 40) {
+                            emitAndRender([6, 2]);
+
+                            const borderCmd = [2];
+                            for(let i = block.x; i <= block.x + block.w; i++) borderCmd.push(i, block.y);
+                            for(let i = block.y; i <= block.y + block.h; i++) borderCmd.push(block.x + block.w, i);
+                            for(let i = block.x + block.w; i >= block.x; i--) borderCmd.push(i, block.y + block.h);
+                            for(let i = block.y + block.h; i >= block.y; i--) borderCmd.push(block.x, i);
+
+                            emitAndRender(borderCmd);
+                            await this.delay(drawSpeedValue);
+
+                            const centerX = Math.floor(block.x + (block.w / 2));
+                            const centerY = Math.floor(block.y + (block.h / 2));
+                            emitAndRender([7, centerX, centerY]);
+                        }
+                        else if (block.w > 2 && block.h > 2) {
+                            emitAndRender([1, 2, block.x, block.y, block.x + block.w, block.y + block.h]);
+                        }
+                        else if (block.w >= block.h) {
+                            emitAndRender([6, block.h]);
+                            emitAndRender([1, 6, block.x, block.y + Math.floor(block.h/2), block.x + block.w, block.y + Math.floor(block.h/2)]);
+                        }
+                        else {
+                            emitAndRender([6, block.w]);
+                            emitAndRender([1, 6, block.x + Math.floor(block.w/2), block.y, block.x + Math.floor(block.w/2), block.y + block.h]);
+                        }
+
                         await this.delay(drawSpeedValue);
-                    } catch (e) {
-                        console.error("Kawaii Helper: Error during region fill:", e);
-                        this.showNotification("Error during region fill.", 2000);
                     }
                 }
 
@@ -1758,154 +1848,79 @@ by anonimbiri
             return { imageData, data };
         }
 
-        async detectRegions(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, colorToleranceValue) {
-            const backgroundColor = [255, 255, 255, 255];
+        extractSmartBlocks(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, tolerance) {
+            const blocksByColor = {};
+            const palette = [];
             const visited = new Uint8Array(canvasWidth * canvasHeight);
-            const regions = [];
+            const step = 2;
+
+            const quantizeStep = Math.max(10, tolerance * 2);
+            const snap = (v) => Math.min(255, Math.floor(v / quantizeStep) * quantizeStep);
 
             const getColorAt = (x, y) => {
-                if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) {
-                    return backgroundColor;
-                }
-                const index = (y * canvasWidth + x) * 4;
-                return [data[index], data[index + 1], data[index + 2], data[index + 3]];
+                const idx = (y * canvasWidth + x) * 4;
+                return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
             };
 
-            const traceRegion = (startX, startY, startColor, tolerance) => {
-                const regionCoords = [];
-                const stack = [[startX, startY]];
-                const currentRegionVisited = new Set([`${startX},${startY}`]);
-                let minX = startX, minY = startY, maxX = startX, maxY = startY;
+            const isWhite = (c) => c[3] < 10 || (c[0] > 240 && c[1] > 240 && c[2] > 240);
 
-                visited[startY * canvasWidth + startX] = 1;
+            const getHexQuantized = (c) => {
+                const r = snap(c[0]), g = snap(c[1]), b = snap(c[2]);
+                return 'x' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+            };
 
-                const neighbors = [
-                    [1, 0], [-1, 0], [0, 1], [0, -1] // 4-direction check
-                ];
+            for (let y = imgTop; y < imgBottom; y += step) {
+                if (!this.isDrawing) return {};
 
-                while (stack.length > 0) {
-                    const [x, y] = stack.pop();
-                    regionCoords.push([x, y]);
-                    minX = Math.min(minX, x); minY = Math.min(minY, y);
-                    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+                for (let x = imgLeft; x < imgRight; x += step) {
+                    if (visited[y * canvasWidth + x]) continue;
 
-                    for (const [dx, dy] of neighbors) {
-                        const nx = x + dx;
-                        const ny = y + dy;
-                        const nKey = `${nx},${ny}`;
-                        if (nx >= imgLeft && nx <= imgRight && ny >= imgTop && ny <= imgBottom &&
-                            visited[ny * canvasWidth + nx] === 0 &&
-                            !currentRegionVisited.has(nKey)
-                           ) {
-                            const neighborColor = getColorAt(nx, ny);
-                            const distance = this.colorDistance(neighborColor, startColor);
+                    const c = getColorAt(x, y);
+                    if (isWhite(c)) {
+                        visited[y * canvasWidth + x] = 1;
+                        continue;
+                    }
 
-                            if (distance <= tolerance * 1.2) { // Dynamic tolerance
-                                visited[ny * canvasWidth + nx] = 1;
-                                currentRegionVisited.add(nKey);
-                                stack.push([nx, ny]);
+                    const currentHex = getHexQuantized(c);
+
+                    let w = step;
+                    while (x + w < imgRight && !visited[y * canvasWidth + (x + w)]) {
+                        const nc = getColorAt(x + w, y);
+                        if (isWhite(nc) || getHexQuantized(nc) !== currentHex) break;
+                        w += step;
+                    }
+
+                    let h = step;
+                    let match = true;
+                    while (y + h < imgBottom && match) {
+                        for (let ix = x; ix < x + w; ix += step) {
+                            if (visited[(y + h) * canvasWidth + ix]) {
+                                match = false; break;
+                            }
+                            const nc = getColorAt(ix, y + h);
+                            if (isWhite(nc) || getHexQuantized(nc) !== currentHex) {
+                                match = false; break;
                             }
                         }
+                        if (match) h += step;
                     }
-                }
 
-                return regionCoords.length > 0 ? { // Allow smaller regions
-                    coords: regionCoords,
-                    color: startColor.slice(0, 3),
-                    bounds: { minX, minY, maxX, maxY }
-                } : null;
-            };
-
-            for (let y = imgTop; y <= imgBottom && this.isDrawing; y += 1) {
-                for (let x = imgLeft; x <= imgRight && this.isDrawing; x += 1) {
-                    if (!window.game.turn) { this.stopDrawing(); return []; }
-                    const index = y * canvasWidth + x;
-                    if (visited[index] === 1) continue;
-
-                    const pixelColor = getColorAt(x, y);
-                    const regionResult = traceRegion(x, y, pixelColor, colorToleranceValue);
-
-                    if (regionResult) {
-                        if (this.colorDistance(regionResult.color, backgroundColor) > colorToleranceValue) {
-                            regions.push({
-                                color: regionResult.color,
-                                hex: this.rgbToHex(regionResult.color),
-                                coords: regionResult.coords,
-                                size: regionResult.coords.length,
-                                bounds: regionResult.bounds
-                            });
+                    for (let iy = y; iy < y + h; iy += step) {
+                        for (let ix = x; ix < x + w; ix += step) {
+                            visited[iy * canvasWidth + ix] = 1;
                         }
-                    } else {
-                        visited[index] = 1;
                     }
+
+                    if (!blocksByColor[currentHex]) blocksByColor[currentHex] = [];
+                    blocksByColor[currentHex].push({ x, y, w, h });
                 }
             }
 
-            regions.sort((a, b) => b.size - a.size);
-            return regions;
-        }
-
-        areRegionsClose(boundsA, boundsB, threshold) {
-            const horizontalClose = Math.abs(boundsA.maxX - boundsB.minX) <= threshold ||
-                  Math.abs(boundsB.maxX - boundsA.minX) <= threshold;
-            const verticalClose = Math.abs(boundsA.maxY - boundsB.minY) <= threshold ||
-                  Math.abs(boundsB.maxY - boundsA.minY) <= threshold;
-            return horizontalClose && verticalClose;
-        }
-
-        async fillRegion(region, colorHex) {
-            if (!this.isDrawing || !window.game || !window.game._socket || !window.game.turn) {
-                this.stopDrawing();
-                return;
+            for (const color in blocksByColor) {
+                blocksByColor[color].sort((a, b) => (b.w * b.h) - (a.w * a.h));
             }
 
-            const canvas = window.game._desenho._canvas.canvas;
-            const ctx = canvas.getContext('2d');
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-
-            const regionSet = new Set(region.map(([x, y]) => `${x},${y}`));
-            const visited = new Set();
-            const fills = [];
-            const queue = [region[0]];
-
-            const isInRegion = (x, y) => regionSet.has(`${x},${y}`) && !visited.has(`${x},${y}`);
-
-            while (queue.length > 0 && this.isDrawing) {
-                const [x, y] = queue.shift();
-                if (!isInRegion(x, y)) continue;
-
-                let leftX = x;
-                let rightX = x;
-
-                while (leftX - 1 >= 0 && isInRegion(leftX - 1, y)) leftX--;
-                while (rightX + 1 < canvasWidth && isInRegion(rightX + 1, y)) rightX++;
-
-                const width = rightX - leftX + 1;
-                fills.push([leftX, y, width, 1]);
-
-                for (let i = leftX; i <= rightX; i++) visited.add(`${i},${y}`);
-
-                if (y - 1 >= 0) {
-                    for (let i = leftX; i <= rightX; i++) {
-                        if (isInRegion(i, y - 1)) queue.push([i, y - 1]);
-                    }
-                }
-                if (y + 1 < canvasHeight) {
-                    for (let i = leftX; i <= rightX; i++) {
-                        if (isInRegion(i, y + 1)) queue.push([i, y + 1]);
-                    }
-                }
-            }
-
-            if (fills.length > 0 && this.isDrawing) {
-                window.game._socket.emit(10, window.game._codigo, [5, colorHex]);
-                ctx.fillStyle = `#${colorHex.slice(1)}`;
-
-                const fillCommand = [3, ...fills.flat()];
-                window.game._socket.emit(10, window.game._codigo, fillCommand);
-                fills.forEach(([x, y, w, h]) => ctx.fillRect(x, y, w, h));
-            }
+            return blocksByColor;
         }
 
         stopDrawing() {
@@ -1914,16 +1929,8 @@ by anonimbiri
             this.elements.sendDraw.disabled = !(this.elements.previewImg.src && this.elements.previewImg.src !== '#');
         }
 
-        colorDistance(color1_rgb, color2_rgb) {
-            if (!color1_rgb || !color2_rgb || color1_rgb.length < 3 || color2_rgb.length < 3) return Infinity;
-            const rDiff = color1_rgb[0] - color2_rgb[0];
-            const gDiff = color1_rgb[1] - color2_rgb[1];
-            const bDiff = color1_rgb[2] - color2_rgb[2];
-            return Math.sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff);
-        }
-
         rgbToHex(rgb) {
-            if (!rgb || rgb.length < 3) return '#000000';
+            if (!rgb || rgb.length < 3) return 'x000000';
             const r = Math.min(255, Math.max(0, Math.round(rgb[0])));
             const g = Math.min(255, Math.max(0, Math.round(rgb[1])));
             const b = Math.min(255, Math.max(0, Math.round(rgb[2])));
