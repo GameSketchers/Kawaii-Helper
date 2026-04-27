@@ -21,6 +21,14 @@
 // @noframes
 // ==/UserScript==
 
+/*
+This project is no longer maintained/updated.
+You are free to modify and redistribute this code.
+Please ensure appropriate credit is given upon sharing.
+ 
+by anonimbiri
+*/
+
 (function() {
     'use strict';
 
