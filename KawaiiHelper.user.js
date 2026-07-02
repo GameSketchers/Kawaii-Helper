@@ -1,13 +1,13 @@
 // ==UserScript==
-// @name         Kawaii Helper & Drawing Bot for Gartic.io
+// @name         Kawaii Helper & Drawing Bot for Gartic.io (New Draw Engine)
 // @name:tr      Gartic.io için Kawaii Yardımcı & Çizim Botu
 // @name:ja      Gartic.io用 Kawaii Helper ＆ 描画ボット
 // @namespace    https://github.com/GameSketchers/Kawaii-Helper
-// @version      2026-04-27
+// @version      2026-07-02
 // @description  Helper for Gartic.io with auto-guess, drawing assistance, and drawing bot
 // @description:tr  Gartic.io için otomatik tahmin, çizim yardımı ve çizim botu ile yardımcı
 // @description:ja  自動推測、描画アシスト、描画ボットを備えたGartic.io用ヘルパー
-// @author       anonimbiri & Gartic-Developers
+// @author       anonimbiri & Game Sketchers
 // @license      MIT
 // @match        *://*.gartic.io/*
 // @exclude      *://gartic.io/_next/*
@@ -22,17 +22,52 @@
 // ==/UserScript==
 
 /*
-This project is no longer maintained/updated.
-You are free to modify and redistribute this code.
-Please ensure appropriate credit is given upon sharing.
- 
-by anonimbiri
+✧ Kawaii Helper 2026-07-02 Update ✧
+
+• Drawing engine completely overhauled with Vector Draw
+• Advanced vector rendering: smart color palette extraction, zigzag path generation, and skeleton-based line art for B&W images
+• Optimized 120ms draw speed (no more getting kicked for spamming)
+
+note by qwyua: Works flawlessly with line-art style drawings.
+Some bugs and color artifacts may occur when processing
+colorful images — im aware but not fixing further deal with it =)
+
+created by anonimbiri & reworked by qwyua
 */
 
 (function() {
     'use strict';
 
     class KawaiiHelper {
+        #game = null;
+        #chat = null;
+        #answer = null;
+        #CW = 767;
+        #CH = 448;
+        #MARGIN = 10;
+        #PING_EVERY = 5;
+        #MAX_CHUNK = 20;
+        #RDP_EPSILON = 2.5;
+        #CONNECT_DIST = 7;
+        #SMOOTH_WINDOW = 4;
+        #THINNING_ITERATIONS = 18;
+        #COLOR_COUNT = 24;
+        #WHITE_THRESHOLD = 240;
+        #MIN_COMPONENT_SIZE = 20;
+        #myTurnDrawing = false;
+        #drawState = {
+            socket: null,
+            commands: [],
+            seq: 0,
+            running: false,
+            paused: false,
+            timer: null,
+            speed: 120,
+            threshold: 110,
+            thickness: 3,
+            minPathLen: 6,
+            mode: 'Unknown'
+        };
         constructor() {
             this.translations = {
                 en: {
@@ -71,7 +106,8 @@ by anonimbiri
                     "No Kick Cooldown": "No Kick Cooldown",
                     "Chat Bypass Censorship": "Chat Bypass Censorship",
                     "New update available!": "New update available!",
-                    "Drawing... ${count} color groups created.": "Drawing... ${count} color groups created."
+                    "Drawing... ${count} color groups created.": "Drawing... ${count} color groups created.",
+                    "Text To Draw": "Enter text to draw."
                 },
                 tr: {
                     "✧ Kawaii Helper ✧": "✧ Kawaii Yardımcı ✧",
@@ -109,7 +145,8 @@ by anonimbiri
                     "No Kick Cooldown": "Atma Bekleme Süresi Yok",
                     "Chat Bypass Censorship": "Sohbet Sansürünü Atlat",
                     "New update available!": "Yeni güncelleme var!",
-                    "Drawing... ${count} color groups created.": "Çiziliyor... ${count} renk grubu oluşturuldu."
+                    "Drawing... ${count} color groups created.": "Çiziliyor... ${count} renk grubu oluşturuldu.",
+                    "Text To Draw": "Çizmek istediğiniz metni girin."
                 },
                 ja: {
                     "✧ Kawaii Helper ✧": "✧ Kawaii ヘルパー ✧",
@@ -147,11 +184,11 @@ by anonimbiri
                     "No Kick Cooldown": "キックの待機時間なし",
                     "Chat Bypass Censorship": "チャットの検閲を回避",
                     "New update available!": "新しいアップデートが利用可能です！",
-                    "Drawing... ${count} color groups created.": "描画中... ${count} 個のカラーグループを作成しました。"
+                    "Drawing... ${count} color groups created.": "描画中... ${count} 個のカラーグループを作成しました。",
+                    "Text To Draw": "描くテキストを入力"
                 }
             };
             this.currentLang = navigator.language.split('-')[0] in this.translations ? navigator.language.split('-')[0] : 'en';
-            this.isDrawing = false;
             this.wordList = { "Custom": [] };
             this.wordListURLs = {
                 "General (en)": "https://cdn.jsdelivr.net/gh/GameSketchers/Game-WordList@master/languages/English/general.json",
@@ -172,7 +209,7 @@ by anonimbiri
             this.lastTheme = "Custom";
             this.settings = this.loadSettings();
         }
-
+        #onElementAdded=(s,c,m=0)=>{let o,d=0,p=e=>(d||c(e),m||(d=1,o?.disconnect())),t=()=>{o?.disconnect(),d=0,o=new MutationObserver(r=>{for(let i=0;i<r.length;i++)for(let n of r[i].addedNodes)n.nodeType===1&&(n.matches?.(s)?p(n):(n.querySelector?.(s)&&p(n.querySelector(s))))}),o.observe(document.documentElement,{childList:1,subtree:1});document.querySelector(s)&&p(document.querySelector(s))};t();return{stop:()=>(o?.disconnect(),d=1),start:()=>(o?.disconnect(),t()),get active(){return!d}}}
         static init() {
             const helper = new KawaiiHelper();
             helper.setup();
@@ -208,8 +245,7 @@ by anonimbiri
                 autoKick: false,
                 noKickCooldown: false,
                 chatBypassCensorship: false,
-                drawSpeed: 110,
-                colorTolerance: 20,
+                drawSpeed: 120,
                 position: null
             };
         }
@@ -223,7 +259,6 @@ by anonimbiri
                 noKickCooldown: this.elements.noKickCooldownCheckbox.checked,
                 chatBypassCensorship: this.elements.chatBypassCensorship.checked,
                 drawSpeed: parseInt(this.elements.drawSpeed.value),
-                colorTolerance: parseInt(this.elements.colorTolerance.value),
                 position: {
                     x: this.state.xOffset,
                     y: this.state.yOffset
@@ -295,10 +330,10 @@ by anonimbiri
                 this.checkForUpdates();
                 this.addStyles();
                 this.bindEvents();
-                this.initializeGameCheck();
+                this.#roomDetector();
             });
         }
-
+        #roomDetector(){this.#onElementAdded("div#screenRoom",$=>{((_,__,$$,___)=>{__=_=>{($$=_?.stateNode?.props?.children?.[0]?._owner?.stateNode)&&$$?._game&&(this.#game=$$._game,this.#chat=$$._chatElem,this.#answer=$$._answerElem,this.#joinedRoom()),_?.child&&__(_.child)};for(___ in $)/^__r/.test(___)&&__($[___])})()},1)}
         interceptScripts() {
             const roomScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/room.js`;
             const createScript = `https://cdn.jsdelivr.net/gh/GameSketchers/Kawaii-Helper@${GM_info.script.version}/GameSource/create.js`;
@@ -417,23 +452,23 @@ by anonimbiri
                         </div>
                     </div>
                     <button class="google-search-btn" id="googleSearchBtn" data-translate="Search on Google Images 🡵">Search on Google Images 🡵</button>
+                    <div class="input-container">
+                        <input type="text" id="textToDraw" data-translate-placeholder="Text To Draw" placeholder="Enter text to draw (I'm Using Kawaii Helper!)">
+                    </div>
                     <div class="slider-container">
                         <div class="slider-label" data-translate="Draw Speed">Draw Speed</div>
                         <div class="custom-slider">
-                            <input type="range" id="drawSpeed" min="5" max="1000" value="110" step="5">
+                            <input type="range" id="drawSpeed" min="120" max="1200" value="120" step="5">
                             <div class="slider-track"></div>
                             <span id="drawSpeedValue">110ms</span>
                         </div>
                     </div>
-                    <div class="slider-container">
-                         <div class="slider-label" data-translate="Color Tolerance">Color Tolerance</div>
-                         <div class="custom-slider">
-                             <input type="range" id="colorTolerance" min="5" max="100" value="20" step="1">
-                             <div class="slider-track"></div>
-                             <span id="colorToleranceValue">20</span>
-                         </div>
+                    <div class="draw-buttons">
+                        <button class="draw-btn" id="startDraw" disabled data-translate="Draw Now ✧">Draw Now ✧</button>
+                        <button class="draw-btn" id="pauseDraw" disabled data-translate="Pause">Pause</button>
+                        <button class="draw-btn" id="resumeDraw" disabled data-translate="Resume">Resume</button>
+                        <button class="draw-btn" id="resetDraw" disabled data-translate="Reset">Reset</button>
                     </div>
-                    <button class="draw-btn" id="sendDraw" disabled data-translate="Draw Now ✧">Draw Now ✧</button>
                 </div>
                 <div class="kawaii-content" id="settings-tab" style="display: none;">
                     <div class="checkbox-container">
@@ -481,12 +516,14 @@ by anonimbiri
                 imagePreview: document.getElementById('imagePreview'),
                 previewImg: document.getElementById('previewImg'),
                 cancelImage: document.getElementById('cancelImage'),
+                textToDraw: document.getElementById('textToDraw'),
                 googleSearchBtn: document.getElementById('googleSearchBtn'),
                 drawSpeed: document.getElementById('drawSpeed'),
                 drawSpeedValue: document.getElementById('drawSpeedValue'),
-                colorTolerance: document.getElementById('colorTolerance'),
-                colorToleranceValue: document.getElementById('colorToleranceValue'),
-                sendDraw: document.getElementById('sendDraw'),
+                startDraw: document.getElementById('startDraw'),
+                pauseDraw: document.getElementById('pauseDraw'),
+                resumeDraw: document.getElementById('resumeDraw'),
+                resetDraw: document.getElementById('resetDraw'),
                 autoKickCheckbox: document.getElementById('autoKick'),
                 noKickCooldownCheckbox: document.getElementById('noKickCooldown'),
                 chatBypassCensorship: document.getElementById('chatBypassCensorship'),
@@ -533,19 +570,17 @@ by anonimbiri
             this.elements.noKickCooldownCheckbox.checked = this.settings.noKickCooldown;
             this.elements.chatBypassCensorship.checked = this.settings.chatBypassCensorship;
             this.elements.drawSpeed.value = this.settings.drawSpeed;
-            this.elements.colorTolerance.value = this.settings.colorTolerance;
 
             this.elements.speedContainer.style.display = this.settings.autoGuess ? 'flex' : 'none';
             this.elements.wordListContainer.style.display = this.settings.customWords ? 'block' : 'none';
             this.updateGuessSpeed({ target: this.elements.guessSpeed });
             this.updateDrawSpeed({ target: this.elements.drawSpeed });
-            this.updateColorTolerance({ target: this.elements.colorTolerance });
         }
 
         addStyles() {
             const style = document.createElement('style');
             style.textContent = `
-        :root {
+         :root {
             --primary-color: #FF69B4;
             --primary-dark: #FF1493;
             --primary-light: #FFC0CB;
@@ -1277,10 +1312,18 @@ by anonimbiri
             background: rgba(255, 105, 180, 0.5);
             cursor: not-allowed;
         }
-    `;
+        .draw-buttons{
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .draw-btn:disabled {
+            pointer-events: none;
+            display: none;
+        }`;
             document.head.appendChild(style);
             this.updateLanguage();
-            [this.elements.guessSpeed, this.elements.drawSpeed, this.elements.colorTolerance].forEach(this.updateSliderTrack.bind(this));
+            [this.elements.guessSpeed, this.elements.drawSpeed].forEach(this.updateSliderTrack.bind(this));
         }
 
         updateLanguage() {
@@ -1338,7 +1381,6 @@ by anonimbiri
             });
             this.elements.guessPattern.addEventListener('input', e => this.updateHitList(e.target.value.trim()));
             this.elements.hitList.addEventListener('click', this.handleHitListClick.bind(this));
-
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 this.elements.wordListDropzone.addEventListener(eventName, this.preventDefaults, false);
                 this.elements.imageDropzone.addEventListener(eventName, this.preventDefaults, false);
@@ -1348,7 +1390,6 @@ by anonimbiri
             this.elements.wordListDropzone.addEventListener('dragleave', () => this.elements.wordListDropzone.classList.remove('drag-over'));
             this.elements.wordListDropzone.addEventListener('drop', this.handleWordListDrop.bind(this));
             this.elements.wordListInput.addEventListener('change', this.handleWordListInput.bind(this));
-
             this.elements.imageDropzone.addEventListener('dragenter', () => this.elements.imageDropzone.classList.add('drag-over'));
             this.elements.imageDropzone.addEventListener('dragover', () => this.elements.imageDropzone.classList.add('drag-over'));
             this.elements.imageDropzone.addEventListener('dragleave', () => this.elements.imageDropzone.classList.remove('drag-over'));
@@ -1364,16 +1405,32 @@ by anonimbiri
                 const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(word)}+vectorial&tbm=isch`;
                 window.open(searchUrl, '_blank');
             });
-            this.elements.drawSpeed.addEventListener('input', (e) => {
+            this.elements.drawSpeed.addEventListener('input',(e)=>{
+                this.#drawState.speed = parseInt(e.target.value);
                 this.updateDrawSpeed(e);
                 this.saveSettings();
             });
-            this.elements.colorTolerance.addEventListener('input', (e) => {
-                this.updateColorTolerance(e);
-                this.saveSettings();
+            this.elements.startDraw.addEventListener('click', () => {
+                this.#drawState.commands.length === 0
+                    ? (text => text && this.#drawText(text))(this.elements.textToDraw?.value?.trim())
+                : this.#startDrawing();
+                this.updateDrawButtons();
             });
-            this.elements.sendDraw.addEventListener('click', this.toggleDrawing.bind(this));
-
+            this.elements.pauseDraw.addEventListener('click', () => {
+                this.#pauseDrawing();
+                this.updateDrawButtons();
+            });
+            this.elements.resumeDraw.addEventListener('click', () => {
+                this.#resumeDrawing();
+                this.updateDrawButtons();
+            });
+            this.elements.resetDraw.addEventListener('click', () => {
+                this.elements.previewImg.src = '';
+                this.elements.imageDropzone.style.display = 'flex';
+                this.elements.imagePreview.style.display = 'none';
+                this.#resetDrawing();
+                this.updateDrawButtons();
+            });
             this.elements.autoKickCheckbox.addEventListener('change', () => {
                 this.showNotification(`Auto Kick: ${this.elements.autoKickCheckbox.checked ? 'Enabled' : 'Disabled'}`, 2000);
                 this.saveSettings();
@@ -1408,7 +1465,45 @@ by anonimbiri
                 }
             });
         }
-
+        #joinedRoom() {
+            this.#drawState.socket = window.game._socket;
+            this.#drawState.id = window.game._codigo;
+            this.#myTurnDrawing = false;
+            const origInicioVez = [...window.game._events.inicioVez];
+            window.game._events.inicioVez = [function(...args) {
+                this.#myTurnDrawing = true;
+                origInicioVez.forEach(fn => fn.apply(this, args));
+            }.bind(this), ...origInicioVez.slice(1)];
+            const origFimRodada = [...window.game._events.fimRodada];
+            window.game._events.fimRodada = [function(...args) {
+                if (this.#myTurnDrawing) {
+                    this.#myTurnDrawing = false;
+                    this.#resetDrawing();
+                    this.updateDrawButtons();
+                }
+                origFimRodada.forEach(fn => fn.apply(this, args));
+            }.bind(this), ...origFimRodada.slice(1)];
+            const currentTheme = window.game._dadosSala.tema || "Custom";
+            if (currentTheme !== "Custom") {
+                this.fetchWordList(currentTheme).then(() => this.updateHitList(this.elements.guessPattern.value.trim()));
+            }
+        }
+        cancelImagePreview(){
+            this.elements.previewImg.src = '';
+            this.elements.imageDropzone.style.display = 'flex';
+            this.elements.imagePreview.style.display = 'none';
+            this.updateDrawButtons();
+        }
+        updateDrawButtons() {
+            const { startDraw, pauseDraw, resumeDraw, resetDraw } = this.elements;
+            const hasCommands = this.#drawState.commands.length > 0;
+            const isRunning = this.#drawState.running;
+            const isPaused = this.#drawState.paused;
+            startDraw.disabled = isRunning;
+            pauseDraw.disabled = !isRunning || isPaused;
+            resumeDraw.disabled = !isPaused;
+            resetDraw.disabled = !isRunning && !isPaused && !hasCommands;
+        }
         startDragging(e) {
             if (e.target !== this.elements.minimizeBtn) {
                 this.state.initialX = e.clientX - this.state.xOffset;
@@ -1627,328 +1722,345 @@ by anonimbiri
                 this.elements.previewImg.src = event.target.result;
                 this.elements.imageDropzone.style.display = 'none';
                 this.elements.imagePreview.style.display = 'block';
-                this.elements.sendDraw.disabled = false;
+
+                const img = new Image();
+                img.onload = () => {
+                    this.#processImage(img, false);
+                    this.updateDrawButtons();
+                };
+                img.src = event.target.result;
             };
             reader.readAsDataURL(file);
-        }
-
-        cancelImagePreview() {
-            this.elements.previewImg.src = '';
-            this.elements.imageDropzone.style.display = 'flex';
-            this.elements.imagePreview.style.display = 'none';
-            this.elements.sendDraw.disabled = true;
-            this.elements.imageUpload.value = '';
         }
 
         updateDrawSpeed(e) {
             this.updateSliderTrack(e.target);
             this.elements.drawSpeedValue.textContent = e.target.value >= 1000 ? `${e.target.value / 1000}s` : `${e.target.value}ms`;
         }
-
-        updateColorTolerance(e) {
-            this.updateSliderTrack(e.target);
-            this.elements.colorToleranceValue.textContent = e.target.value;
+        #startDrawing(){this.#drawState.running||!this.#drawState.commands.length||(this.#game._player._ativo=!0,Object.assign(this.#drawState,{seq:0,paused:!1,running:!0}),this.#sendNext())}
+        #pauseDrawing(){this.#drawState.running&&(this.#drawState.paused=!0,clearTimeout(this.#drawState.timer))}
+        #resumeDrawing(){this.#drawState.paused&&(this.#drawState.paused=!1,this.#sendNext())}
+        #resetDrawing(){clearTimeout(this.#drawState.timer);this.#drawState.commands.length=0;this.#drawState.seq=0;this.#drawState.running=this.#drawState.paused=false}
+        #loadImageFile(file){
+            const reader=new FileReader();
+            reader.onload=({target:{result}})=>{
+                const img=new Image();
+                img.onload=()=>this.#processImage(img,!1);
+                img.src=result;
+            };
+            reader.readAsDataURL(file);
         }
 
-        toggleDrawing() {
-            if (!this.elements.previewImg.src) return;
+        #processImage(img,forceVector=false){
+            this.#resetDrawing();
+            const scale = Math.min((this.#CW-2*this.#MARGIN)/img.width,(this.#CH-2*this.#MARGIN)/img.height);
+            const [w,h]=[Math.max(1,Math.round(img.width*scale)),Math.max(1,Math.round(img.height*scale))];
+            const tmpCanvas = Object.assign(document.createElement('canvas'),{width:w,height:h});
+            const tmpCtx = tmpCanvas.getContext('2d',{willReadFrequently:!0});
+            tmpCtx.imageSmoothingEnabled=!0;
+            tmpCtx.drawImage(img,0,0,w,h);
+            const {data}=tmpCtx.getImageData(0,0,w,h);
+            let colorfulPixels=0,totalValid=0;
+            for (let i=0;i<data.length;i+=16){
+                data[i+3]<50||((r=data[i],g=data[i+1],b=data[i+2])=>{(r<30&&g<30&&b<30)||(r>225&&g>225&&b>225)||(totalValid++,Math.max(r,g,b)-Math.min(r,g,b)>35&&colorfulPixels++)})();
+            }
+            const isColor=!forceVector&&totalValid>0&&colorfulPixels/totalValid>0.12;
+            const mode=isColor?'Colorful':'NoN-Colorful';
+            this.#drawState.mode=mode;
+            (isColor?this.#processColorFinal:this.#processVectorImage).call(this,data,w,h);
+        }
 
-            if (!this.isDrawing) {
-                if (!window.game || !window.game.turn) {
-                    this.showNotification(this.localize("Not your turn or game not loaded! ✧"), 3000);
-                    return;
+        #processColorFinal(data,w,h){
+            const [ox, oy] = [(this.#CW-w)/2,(this.#CH-h)/2];
+            const thickness = Math.max(1,this.#drawState.thickness);
+            const radius = Math.max(1,Math.floor(thickness/2));
+            const palette = this.#createPalette(data,w,h,this.#COLOR_COUNT);
+            const quantized = this.#quantizeImage(data,w,h,palette);
+            let componentsByColor = this.#findConnectedComponents(quantized,w,h);
+            this.#mergeSmallComponents(componentsByColor,quantized,w,h);
+            componentsByColor = this.#findConnectedComponents(quantized,w,h);
+            const eroded = this.#erodeGlobal(quantized,w,h,radius);
+            const finalComponents = this.#findConnectedComponents(eroded,w,h);
+            const allPaths = Object.entries(finalComponents)
+            .flatMap(([color,comps])=>comps.map(comp=>({color,points:comp.points,size:comp.points.length})))
+            .sort((a,b)=>b.size-a.size)
+            .flatMap(comp=>{const path=this.#buildZigzagFromPoints(comp.points,thickness);return path?.length>=2?[{color:comp.color,path:path.map(p=>({x:p.x+ox,y:p.y+oy}))}]:[]});
+            this.#drawState.commands=[{type:'thickness',val:thickness},...allPaths.flatMap(item=>[{type:'color',val:item.color},...(()=>{
+                const simplified=this.#simplifyPath(item.path, this.#RDP_EPSILON);const chunks=[];
+                for(let start=0;start<simplified.length-1;start+=this.#MAX_CHUNK-1)
+                    chunks.push(...(start+this.#MAX_CHUNK>=simplified.length?[simplified.slice(start)]:[simplified.slice(start,start+this.#MAX_CHUNK)]));
+                return chunks.map(chunk =>({type:'draw',val:chunk}));
+            })()])];
+        }
+
+        #mergeSmallComponents(componentsByColor,quantized,w,h){
+            const all = Object.entries(componentsByColor).flatMap(([color,comps])=>comps.map(c=>({color,points:c.points,size:c.points.length}))).sort((a, b) => a.size - b.size);
+            for (const comp of all){
+                if(comp.size >= this.#MIN_COMPONENT_SIZE) break;
+                const neighborColors = new Map();
+                const visited = new Set();
+                for(const [x,y] of comp.points){
+                    for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+                        const [nx,ny]=[x+dx,y+dy];
+                        (nx<0||nx>=w||ny<0||ny>=h)||(idx=>{visited.has(idx)||(visited.add(idx),(nColor=>nColor&&nColor!==comp.color&&neighborColors.set(nColor,(neighborColors.get(nColor)??0)+1))(quantized[idx]))})(ny*w+nx);
+                    }
                 }
-                this.isDrawing = true;
-                this.elements.sendDraw.textContent = this.localize("Stop Drawing ✧");
-                this.processAndDrawImage(this.elements.previewImg.src);
-            } else {
-                this.isDrawing = false;
-                this.stopDrawing();
+                neighborColors.size===0||((bestColor=[...neighborColors.entries()].reduce((a,b)=>b[1]>a[1]?b:a)[0])=>comp.points.forEach(([x,y])=>quantized[y*w+x]=bestColor))();
             }
         }
 
-        initializeGameCheck() {
-            const checkGame = setInterval(() => {
-                if (window.game) {
-                    clearInterval(checkGame);
-                    const currentTheme = window.game._dadosSala.tema || "Custom";
-                    if (currentTheme !== "Custom") {
-                        this.fetchWordList(currentTheme).then(() => this.updateHitList(this.elements.guessPattern.value.trim()));
+        #erodeGlobal(quantized,w,h,radius){
+            return radius<=0?quantized.slice():Array.from({length:radius},(_,r)=>r)
+                .reduce(current=>{
+                const next = new Array(w*h).fill(null);
+                for (let y=0;y<h;y++){
+                    for (let x=0;x<w;x++){
+                        const idx=y*w+x;
+                        const col=current[idx];
+                        col!==null&&((top,bottom,left,right)=>{top===col&&bottom===col&&left===col&&right===col&&(next[idx]=col)})(y>0?current[idx-w]:null,y<h-1?current[idx+w]:null,x>0?current[idx-1]:null,x<w-1?current[idx+1]:null);
                     }
                 }
-            }, 100);
+                return next;
+            },quantized.slice());
         }
 
-        async processAndDrawImage(imageSrc) {
-            if (!window.game || !window.game._socket || !window.game._desenho || !window.game.turn) {
-                this.showNotification(this.localize("Game not ready or not your turn! ✧"), 3000);
-                this.stopDrawing();
-                return;
+        #buildZigzagFromPoints(points,step) {
+            points.sort((a,b)=>a[1]-b[1]||a[0]-b[0]);
+            const rows=new Map();
+            points.forEach(([x,y])=>(rows.has(y)||rows.set(y,[]),rows.get(y).push(x)));
+            const sortedY=[...rows.keys()].sort((a,b)=>a-b);
+            const gapTolerance=step;
+            const {path}=sortedY.reduce((state,y)=>{
+                (y-state.lastY<step)&&(()=>{})();
+                return y-state.lastY<step?state:((xList=rows.get(y).sort((a,b)=>a-b))=>{
+                    const runs = xList.slice(1).reduce((acc,x)=>(last=>last&&x<=last[1]+gapTolerance?(last[1]=Math.max(last[1],x),acc):[...acc,[x,x]])(acc[acc.length-1]),[[xList[0],xList[0]]]);
+                    return runs.length===0?state:((firstRun=runs[0])=>{
+                        const startX=state.direction===1?firstRun[0]:firstRun[1];
+                        const newPath=state.prevEndX!==null?[...state.path,{x:state.prevEndX,y:state.prevEndY},{x:startX,y}]:[...state.path];
+                        const {path:updatedPath,endX,endY}=runs.reduce(
+                            (inner,[runLeft,runRight],r,arr)=>({path:state.direction===1
+                                                                ?[...inner.path,{x:runLeft,y},{x:runRight,y}]:[...inner.path,{x:runRight,y},{x:runLeft,y}],endX:r===arr.length-1
+                                                                ?(state.direction===1?runRight:runLeft):(()=>{const nextRun=arr[r+1];const nextStart=state.direction===1?nextRun[0]:nextRun[1];const bridgeX=state.direction===1?runRight:runLeft;inner.path.push({x:bridgeX,y},{x:nextStart,y});return state.direction===1?nextRun[1]:nextRun[0]})(),endY:y}),{path:newPath,endX:null,endY:null});
+                        return {path:updatedPath,direction:state.direction*-1,prevEndX:endX,prevEndY:endY,lastY:y};
+                    })();
+                })();
+            },{path:[],direction:1,prevEndX:null,prevEndY:null,lastY:-Infinity});
+            return path.filter((p,i,arr)=>i===0||p.x!==arr[i-1].x||p.y!==arr[i-1].y);
+        }
+
+        #createPalette(data,w,h,colorCount){
+            const pixels=[];
+            for (let i=0;i<data.length;i+=4){
+                const [r,g,b,a]=[data[i],data[i+1],data[i+2],data[i+3]];
+                (a>=50&&(r<=this.#WHITE_THRESHOLD||g<=this.#WHITE_THRESHOLD||b<=this.#WHITE_THRESHOLD))&&pixels.push([r,g,b]);
             }
-
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-
-            img.onload = async () => {
-                let gameCanvas, ctx, canvasWidth, canvasHeight;
-                try {
-                    gameCanvas = window.game._desenho._canvas.canvas;
-                    if (!gameCanvas || !(gameCanvas instanceof HTMLCanvasElement)) throw new Error("Canvas not accessible!");
-                    ctx = gameCanvas.getContext('2d', { willReadFrequently: true });
-                    if (!ctx) throw new Error("Canvas context not available!");
-                    canvasWidth = Math.floor(gameCanvas.width);
-                    canvasHeight = Math.floor(gameCanvas.height);
-                    if (canvasWidth <= 0 || canvasHeight <= 0) throw new Error("Invalid canvas dimensions!");
-                } catch (e) {
-                    this.showNotification(this.localize(e.message.includes("Canvas not accessible") ? "Canvas not accessible! ✧" : "Canvas context not available! ✧"), 3000);
-                    this.stopDrawing();
-                    return;
-                }
-
-                const { tempCtx, imgLeft, imgRight, imgTop, imgBottom } = this.prepareImageCanvas(img, canvasWidth, canvasHeight);
-                if (!tempCtx) {
-                    this.showNotification(this.localize("Temp canvas context failed! ✧"), 3000);
-                    this.stopDrawing();
-                    return;
-                }
-
-                const { imageData, data } = this.getImageData(tempCtx, canvasWidth, canvasHeight);
-                if (!imageData) {
-                    this.stopDrawing();
-                    return;
-                }
-
-                const drawSpeedValue = parseInt(this.elements.drawSpeed.value) || 110;
-                const colorToleranceValue = parseInt(this.elements.colorTolerance.value) || 20;
-
-                const blocksByColor = this.extractSmartBlocks(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, colorToleranceValue);
-
-                if (!this.isDrawing || !window.game.turn) {
-                    this.stopDrawing();
-                    return;
-                }
-
-                let colorCount = Object.keys(blocksByColor).length;
-                this.showNotification(this.localize("Drawing... ${count} color groups created.", { "count": colorCount }), 2000);
-
-                const emitAndRender = (cmdArray) => {
-                    if (cmdArray[0] === 5) {
-                        window.game._socket.emit(10, window.game._codigo, cmdArray);
-                        window.game._desenho.mudaCor(cmdArray[1], false);
-                    }
-                    else if (cmdArray[0] === 6) {
-                        window.game._socket.emit(10, window.game._codigo, cmdArray);
-                        window.game._desenho.mudaBorda(cmdArray[1], false);
-                    }
-                    else if (cmdArray[0] === 1 && cmdArray[1] === 2) {
-                        window.game._socket.emit(10, window.game._codigo, cmdArray);
-                        window.game._desenho.desenhar(cmdArray[2], cmdArray[3], cmdArray[4], cmdArray[5], 2, 0, false);
-                    }
-                    else if (cmdArray[0] === 1 && cmdArray[1] === 6) {
-                        window.game._socket.emit(10, window.game._codigo, cmdArray);
-                        window.game._desenho.desenhar(cmdArray[2], cmdArray[3], cmdArray[4], cmdArray[5], 6, 0, false);
-                    }
-                    else if (cmdArray[0] === 2) {
-                        window.game._socket.emit(10, window.game._codigo, cmdArray);
-                        for(let i=3; i<cmdArray.length; i+=2) {
-                            window.game._desenho.linhaSeq([[cmdArray[i-2], cmdArray[i-1]], [cmdArray[i], cmdArray[i+1]]], 0);
-                        }
-                    }
-                    else if (cmdArray[0] === 7) {
-                        window.game._socket.emit(10, window.game._codigo, cmdArray);
-                        window.game._desenho.balde(cmdArray[1], cmdArray[2]);
-                    }
-                };
-
-                for (const hexColor in blocksByColor) {
-                    if (!this.isDrawing || !window.game.turn) break;
-
-                    const blocks = blocksByColor[hexColor];
-                    if (blocks.length === 0) continue;
-
-                    emitAndRender([5, hexColor]);
-                    await this.delay(30);
-
-                    for (const block of blocks) {
-                        if (!this.isDrawing || !window.game.turn) break;
-
-                        if (block.w > 40 && block.h > 40) {
-                            emitAndRender([6, 2]);
-
-                            const borderCmd = [2];
-                            for(let i = block.x; i <= block.x + block.w; i++) borderCmd.push(i, block.y);
-                            for(let i = block.y; i <= block.y + block.h; i++) borderCmd.push(block.x + block.w, i);
-                            for(let i = block.x + block.w; i >= block.x; i--) borderCmd.push(i, block.y + block.h);
-                            for(let i = block.y + block.h; i >= block.y; i--) borderCmd.push(block.x, i);
-
-                            emitAndRender(borderCmd);
-                            await this.delay(drawSpeedValue);
-
-                            const centerX = Math.floor(block.x + (block.w / 2));
-                            const centerY = Math.floor(block.y + (block.h / 2));
-                            emitAndRender([7, centerX, centerY]);
-                        }
-                        else if (block.w > 2 && block.h > 2) {
-                            emitAndRender([1, 2, block.x, block.y, block.x + block.w, block.y + block.h]);
-                        }
-                        else if (block.w >= block.h) {
-                            emitAndRender([6, block.h]);
-                            emitAndRender([1, 6, block.x, block.y + Math.floor(block.h/2), block.x + block.w, block.y + Math.floor(block.h/2)]);
-                        }
-                        else {
-                            emitAndRender([6, block.w]);
-                            emitAndRender([1, 6, block.x + Math.floor(block.w/2), block.y, block.x + Math.floor(block.w/2), block.y + block.h]);
-                        }
-
-                        await this.delay(drawSpeedValue);
-                    }
-                }
-
-                if (this.isDrawing && window.game.turn) {
-                    this.showNotification(this.localize("Drawing completed! ✧"), 3000);
-                }
-                this.stopDrawing();
-            };
-
-            img.onerror = () => {
-                this.showNotification(this.localize("Failed to load image! ✧"), 3000);
-                this.stopDrawing();
-            };
-
-            img.src = imageSrc;
+            const freqMap = new Map();
+            pixels.forEach(([r,g,b])=>{
+                const hex ='x'+((1<<24)+((r>>2)<<18)+((g>>2)<<10)+((b>>2)<<2)).toString(16).slice(1).toUpperCase();
+                freqMap.set(hex,(freqMap.get(hex)??0)+1);
+            });
+            return [...freqMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,colorCount).map(e=>e[0]);
         }
 
-        prepareImageCanvas(img, canvasWidth, canvasHeight) {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvasWidth;
-            tempCanvas.height = canvasHeight;
-            const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
-
-            const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height);
-            const newWidth = Math.floor(img.width * scale);
-            const newHeight = Math.floor(img.height * scale);
-            const offsetX = Math.floor((canvasWidth - newWidth) / 2);
-            const offsetY = Math.floor((canvasHeight - newHeight) / 2);
-
-            tempCtx.imageSmoothingEnabled = false;
-            tempCtx.fillStyle = 'white';
-            tempCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-            tempCtx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
-
-            return {
-                tempCtx,
-                imgLeft: offsetX,
-                imgRight: offsetX + newWidth,
-                imgTop: offsetY,
-                imgBottom: offsetY + newHeight
-            };
-        }
-
-        getImageData(tempCtx, canvasWidth, canvasHeight) {
-            let imageData, data;
-            try {
-                imageData = tempCtx.getImageData(0, 0, canvasWidth, canvasHeight);
-                data = imageData.data;
-            } catch (e) {
-                this.showNotification(this.localize("Image data error: ${e.message} ✧", { "e.message": e.message }), 3000);
-                return { imageData: null, data: null };
+        #quantizeImage(data,w,h,palette){
+            const result=new Array(w*h).fill(null);
+            const paletteRGB=palette.map(hex=>[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]);
+            for (let i=0,p=0;i<data.length;i+=4,p++){
+                const a=data[i+3];
+                (a<50)&&(result[p]=null)||
+                    ((r=data[i],g=data[i+1],b=data[i+2])=>(r>this.#WHITE_THRESHOLD&&g>this.#WHITE_THRESHOLD&&b>this.#WHITE_THRESHOLD)?(result[p]=null):(result[p]=palette[
+                    paletteRGB.reduce((best,[pr,pg,pb],j)=>{const dist=(r-pr)**2+(g-pg)**2+(b-pb)**2;return dist<best.dist?{dist,idx:j}:best},{dist:Infinity}).idx
+                ]))();
             }
-            return { imageData, data };
+            return result;
         }
 
-        extractSmartBlocks(data, canvasWidth, canvasHeight, imgLeft, imgRight, imgTop, imgBottom, tolerance) {
-            const blocksByColor = {};
-            const palette = [];
-            const visited = new Uint8Array(canvasWidth * canvasHeight);
-            const step = 2;
-
-            const quantizeStep = Math.max(10, tolerance * 2);
-            const snap = (v) => Math.min(255, Math.floor(v / quantizeStep) * quantizeStep);
-
-            const getColorAt = (x, y) => {
-                const idx = (y * canvasWidth + x) * 4;
-                return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
-            };
-
-            const isWhite = (c) => c[3] < 10 || (c[0] > 240 && c[1] > 240 && c[2] > 240);
-
-            const getHexQuantized = (c) => {
-                const r = snap(c[0]), g = snap(c[1]), b = snap(c[2]);
-                return 'x' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-            };
-
-            for (let y = imgTop; y < imgBottom; y += step) {
-                if (!this.isDrawing) return {};
-
-                for (let x = imgLeft; x < imgRight; x += step) {
-                    if (visited[y * canvasWidth + x]) continue;
-
-                    const c = getColorAt(x, y);
-                    if (isWhite(c)) {
-                        visited[y * canvasWidth + x] = 1;
-                        continue;
-                    }
-
-                    const currentHex = getHexQuantized(c);
-
-                    let w = step;
-                    while (x + w < imgRight && !visited[y * canvasWidth + (x + w)]) {
-                        const nc = getColorAt(x + w, y);
-                        if (isWhite(nc) || getHexQuantized(nc) !== currentHex) break;
-                        w += step;
-                    }
-
-                    let h = step;
-                    let match = true;
-                    while (y + h < imgBottom && match) {
-                        for (let ix = x; ix < x + w; ix += step) {
-                            if (visited[(y + h) * canvasWidth + ix]) {
-                                match = false; break;
-                            }
-                            const nc = getColorAt(ix, y + h);
-                            if (isWhite(nc) || getHexQuantized(nc) !== currentHex) {
-                                match = false; break;
-                            }
-                        }
-                        if (match) h += step;
-                    }
-
-                    for (let iy = y; iy < y + h; iy += step) {
-                        for (let ix = x; ix < x + w; ix += step) {
-                            visited[iy * canvasWidth + ix] = 1;
-                        }
-                    }
-
-                    if (!blocksByColor[currentHex]) blocksByColor[currentHex] = [];
-                    blocksByColor[currentHex].push({ x, y, w, h });
+        #findConnectedComponents(quantized,w,h){
+            const parent=new Int32Array(w * h).fill(-1);
+            const find=i=>parent[i]===i?i:(parent[i]=find(parent[i]));
+            const union=(i,j)=>{const ri=find(i),rj=find(j);ri!==rj&&(parent[ri]=rj)};
+            for (let y=0;y<h;y++){
+                for (let x=0;x<w;x++){
+                    const idx=y*w+x;
+                    const color=quantized[idx];
+                    color!==null&&(parent[idx]=idx,x>0&&quantized[idx-1]===color&&union(idx,idx-1),y>0&&quantized[idx-w]===color&&union(idx,idx-w));
                 }
             }
-
-            for (const color in blocksByColor) {
-                blocksByColor[color].sort((a, b) => (b.w * b.h) - (a.w * a.h));
+            const compMap=new Map();
+            for(let y=0;y<h;y++){
+                for(let x=0;x<w;x++){
+                    const idx=y*w+x;
+                    const color=quantized[idx];
+                    color!==null&&((root=find(idx))=>{compMap.has(root)||compMap.set(root,{color,points:[]});compMap.get(root).points.push([x,y])})();
+                }
             }
-
-            return blocksByColor;
+            return [...compMap.values()].reduce((byColor,{color,points})=>{byColor[color]??=[];byColor[color].push({points});return byColor},{});
         }
 
-        stopDrawing() {
-            this.isDrawing = false;
-            this.elements.sendDraw.textContent = this.localize("Draw Now ✧");
-            this.elements.sendDraw.disabled = !(this.elements.previewImg.src && this.elements.previewImg.src !== '#');
+        #processVectorImage(data,w,h){
+            const lum=new Float32Array(w*h);
+            const binary=new Uint8Array(w*h);
+            const T=this.#drawState.threshold;
+            for (let i=0,p=0;i<data.length;i+=4,p++){
+                lum[p]=data[i+3]<50?255:data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
+                binary[p]=lum[p]<T?1:0;
+            }
+            const skeleton=this.#skeletonize(binary,w,h);
+            const paths=this.#connectNearbyEndpoints(this.#traceSkeleton(skeleton,w,h),this.#CONNECT_DIST).map(p=>this.#smoothPath(p,this.#SMOOTH_WINDOW)).filter(p=>p.length>=this.#drawState.minPathLen);
+            const [ox,oy]=[(this.#CW-w)/2,(this.#CH-h)/2];
+            this.#drawState.commands=[{type:'thickness',val:this.#drawState.thickness},{type:'color',val:'x000000'},
+                ...paths.flatMap(path=>{
+                    const simplified=this.#simplifyPath(path,this.#RDP_EPSILON);
+                    return Array.from(
+                        {length:Math.ceil((simplified.length-1)/(this.#MAX_CHUNK-1))},
+                        (_,i)=>{const start=i*(this.#MAX_CHUNK-1);return{type:'draw',val:simplified.slice(start,start+this.#MAX_CHUNK).map(p=>({x:p.x+ox,y:p.y+oy}))}}
+                    );
+                })
+            ];
         }
 
-        rgbToHex(rgb) {
-            if (!rgb || rgb.length < 3) return 'x000000';
-            const r = Math.min(255, Math.max(0, Math.round(rgb[0])));
-            const g = Math.min(255, Math.max(0, Math.round(rgb[1])));
-            const b = Math.min(255, Math.max(0, Math.round(rgb[2])));
-            return 'x' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+        #skeletonize(binary,w,h){
+            let [image,next,changed]=[new Uint8Array(binary),new Uint8Array(w*h),!0];
+            const step=(arr,out,type)=>{
+                let any=!1;
+                for (let y=1;y<h-1;y++){
+                    for (let x=1;x<w-1;x++){
+                        const idx=y*w+x;
+                        arr[idx]!==1?(out[idx]=0):((p2,p3,p4,p5,p6,p7,p8,p9)=>{
+                            const A=(p2===0&&p3===1)+(p3===0&&p4===1)+(p4===0&&p5===1)+(p5===0&&p6===1)+(p6===0&&p7===1)+(p7===0&&p8===1)+(p8===0&&p9===1)+(p9===0&&p2===1);
+                            const B=p2+p3+p4+p5+p6+p7+p8+p9;
+                            const [m1,m2]=type===0?[p2*p4*p6,p4*p6*p8]:[p2*p4*p8,p2*p6*p8];
+                            (A===1&&B>=2&&B<=6&&m1===0&&m2===0)?(out[idx]=0,any=!0):(out[idx]=1);
+                        })(arr[(y-1)*w+x],arr[(y-1)*w+x+1],arr[y*w+x+1],arr[(y+1)*w+x+1],arr[(y+1)*w+x],arr[(y+1)*w+x-1],arr[y*w+x-1],arr[(y-1)*w+x-1]);
+                    }
+                }
+                return any;
+            };
+            for (let iter=0;iter<this.#THINNING_ITERATIONS&&changed;iter++){
+                changed=step(image,next,0);[image,next]=[next,image];
+                changed=step(image,next,1)||changed;[image,next]=[next,image];
+            }
+            return image;
         }
 
-        delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+        #traceSkeleton(skel,w,h){
+            const visited=new Uint8Array(w*h),paths=[];
+            const dirs=[[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1],[0,1],[1,1]];
+            const get=(x,y)=>x>=0&&x<w&&y>=0&&y<h?skel[y*w+x]:0;
+            const traceFrom=(sx,sy)=>{
+                if(visited[sy*w+sx]||skel[sy*w+sx]!==1) return null;
+                const path=[];let[x,y]=[sx,sy];const stack=[];
+                do{visited[y*w+x]=1;path.push({x,y});
+                const nbrs=dirs.reduce((acc,[dx,dy])=>{
+                const[nx,ny]=[x+dx,y+dy];get(nx,ny)===1&&!visited[ny*w+nx]&&acc.push([nx,ny]);return acc},[]);
+                    if(!nbrs.length) break;
+                    const [[f,...r]]=[nbrs];
+                    r.forEach(n=>stack.push({x:n[0],y:n[1]}));
+                    [x,y]=f;
+                }while(!0);
+                while(stack.length){
+                    const{x:bx,y:by}=stack.pop();
+                    if(visited[by*w+bx]) continue;
+                    const sub=[{x:bx,y:by}];visited[by*w+bx]=1;
+                    let [cx,cy]=[bx,by];
+                    do{const nbrs=dirs.reduce((acc,[dx,dy])=>{
+                            const [nx,ny]=[cx+dx,cy+dy];
+                            get(nx,ny)===1&&!visited[ny*w+nx]&&acc.push([nx,ny]);
+                            return acc;
+                        },[]);
+                        if (!nbrs.length) break;
+                        const [[f,...r]]=[nbrs];
+                        r.forEach(n=>stack.push({x:n[0],y:n[1]}));
+                        [cx,cy]=f;visited[cy*w+cx]=1;sub.push({x:cx,y:cy});
+                    }while(!0);
+                    sub.length>=this.#drawState.minPathLen&&paths.push(sub);
+                }
+                return path;
+            };
+            for (let y=0;y<h;y++) for(let x=0;x<w;x++)
+                skel[y*w+x]===1&&!visited[y*w+x]&&((p=traceFrom(x,y))=>p?.length>=this.#drawState.minPathLen&&paths.push(p))();
+            return paths;
+        }
+
+        #connectNearbyEndpoints(paths,maxDist) {
+            const result=[],used=new Set();
+            paths.forEach((_,i)=>{used.has(i)||((cur=[...paths[i]])=>{used.add(i);let changed=!0;
+                    while(changed){changed=!1;const hd=cur[0],tl=cur[cur.length-1];
+                        paths.some((o,j)=>!used.has(j)&&((oh=o[0],ot=o[o.length-1])=>{
+                                Math.hypot(hd.x-ot.x,hd.y-ot.y)<maxDist&&(cur=[...o.slice(0,-1),...cur],used.add(j),changed=!0,!0)||
+                                Math.hypot(tl.x-oh.x,tl.y-oh.y)<maxDist&&(cur=[...cur,...o.slice(1)],used.add(j),changed =!0,!0)||
+                                Math.hypot(hd.x-oh.x,hd.y-oh.y)<maxDist&&(cur=[...o.reverse(),...cur.slice(1)],used.add(j),changed=!0,!0)||
+                                Math.hypot(tl.x-ot.x,tl.y-ot.y)<maxDist&&(cur=[...cur.slice(0,-1),...o.reverse()],used.add(j),changed=!0,!0);
+                        })());
+                    }
+                    cur.length>=this.#drawState.minPathLen&&result.push(cur);
+                })();
+            });
+            return result;
+        }
+
+        #smoothPath(pts,win){
+            return pts.length<3||win<1?pts:pts.map((_,i)=>{
+                const start=Math.max(0,i-win),end=Math.min(pts.length-1,i+win);
+                let sx=0,sy=0,c=0;
+                for(let j=start;j<=end;j++){sx+=pts[j].x;sy+=pts[j].y;c++}
+                return {x:sx/c,y:sy/c};
+            });
+        }
+
+        #simplifyPath(pts,eps){
+            return (function simplify(seg){
+                return seg.length<3?[seg[0],seg[seg.length-1]]:((f,l)=>{
+                    const dx=l.x-f.x,dy=l.y-f.y,lenSq=dx*dx+dy*dy;
+                    const{maxD,maxI}=seg.slice(1,-1).reduce((acc,p,i)=>{
+                        const t=Math.max(0,Math.min(1,((p.x-f.x)*dx +(p.y-f.y)*dy)/(lenSq||1/0)));
+                        const d=Math.hypot(p.x-(f.x+t*dx),p.y-(f.y+t*dy));
+                        return d>acc.maxD?{maxD:d,maxI:i+1}:acc;
+                    },{maxD:0,maxI:0});
+                    return maxD>eps?[...simplify(seg.slice(0,maxI+1)),...simplify(seg.slice(maxI)).slice(1)]:[f,l];
+                })(seg[0],seg[seg.length-1]);
+            })(pts);
+        }
+
+        #sendNext() {
+            const canRun=this.#drawState.running&&!this.#drawState.paused;
+            canRun&&this.#drawState.seq<this.#drawState.commands.length&&
+                (({type,val})=>{
+                const{speed,socket}=this.#drawState,ws=socket.io.engine.transport.ws,ID=this.#game._codigo;
+                type==='color'&&(
+                    ws.send(`42[10,${ID},[5,"${val}"]]`),
+                    this.#game._player._desenho.mudaCor(val,false),
+                    this.#drawState.seq++,
+                    this.#drawState.timer=setTimeout(()=>this.#sendNext(),30)
+                );
+                type==='thickness'&&(
+                    ws.send(`42[10,${ID},[6,"${val}"]]`),
+                    this.#game._player._desenho.mudaBorda(val,false),
+                    this.#drawState.seq++,
+                    this.#drawState.timer=setTimeout(()=>this.#sendNext(),20)
+                );
+                type==='draw'&&(coords=>{
+                    for (const p of val) coords.push(Math.round(p.x),Math.round(p.y));
+                    ws.send(`42[10,${ID},[${coords.toString()}]]`);
+                    this.#game._player.registrar(coords[0]+"@"+coords.slice(1).join("#"));
+                    this.#drawState.seq++;
+                    this.#drawState.seq%this.#PING_EVERY===0&&ws.send('2');
+                    this.#drawState.timer=setTimeout(()=>this.#sendNext(),speed*(0.85+Math.random()*0.3));
+                })([2]);
+            })(this.#drawState.commands[this.#drawState.seq]);
+            canRun&&this.#drawState.seq>=this.#drawState.commands.length&&this.#resetDrawing();
+        }
+
+        #drawText(text) {
+            text||(()=>{})();
+            const font='60px Arial',lines=text.split('\n'),lineHeight=72,canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+            ctx.font=font;
+            [canvas.width,canvas.height]=[Math.max(...lines.map(l=>ctx.measureText(l).width))+20,lines.length*lineHeight];
+            ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle='#000000';ctx.font=font;ctx.textBaseline='top';
+            lines.forEach((l,i)=>ctx.fillText(l,5,i*lineHeight));
+            this.#processImage(canvas,!0);
         }
     }
-
     KawaiiHelper.init();
 })();
